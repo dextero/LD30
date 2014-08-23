@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8.5)
-set(CMAKE_C_COMPILER gcc)
-set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_COMPILER clang++)
 
 project(sandbox)
 
@@ -15,6 +14,8 @@ if(NOT DEFINED ENV{SDK_DIR})
     set(ENV{SDK_DIR} "${ROOT_DIR}/extlibs")
 endif()
 
+set(SFML_ROOT "$ENV{SDK_DIR}/SFML")
+
 # setup library directories
 if(DEFINED ENV{SDK_DIR})
     file(TO_CMAKE_PATH $ENV{SDK_DIR} SDK_DIR)
@@ -24,14 +25,16 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -export-dynamic")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_BUILD_TYPE Debug)
 
 # external libraries
-add_external_library(SFML REQUIRED)
+set(CMAKE_MODULE_PATH "${SFML_ROOT}/cmake/Modules" ${CMAKE_MODULE_PATH})
+set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${SFML_ROOT}/lib")
+find_library(SFML 2 REQUIRED system window graphics network audio)
 
-set(LIBS -ldl ${LIBS})
+include_directories(${SFML_INCLUDE_DIRS})
+set(LIBS -ldl ${LIBS} ${SFML_LIBRARIES})
 
 # project sources
 include_directories(${ROOT_DIR}/src)
@@ -43,5 +46,5 @@ set(GAME_SOURCES ${GAME_HEADERS}
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11 -Wno-variadic-macros -Wno-pragmas -Wno-unknown-pragmas -DGLM_FORCE_RADIANS -DGLM_SWIZZLE")
 
 add_executable(game ${GAME_SOURCES})
-target_link_libraries(game ${LIBS})
+target_link_libraries(game sfml-window sfml-graphics sfml-system)
 
