@@ -6,7 +6,7 @@
 
 constexpr float PLANET_MASS = 1000.0f;
 constexpr float PLANET_SPEED = 10.0f;
-constexpr float MIN_ASTEROID_MASS = 100.0f;
+constexpr float MIN_ASTEROID_MASS = 10.0f;
 constexpr float MAX_ASTEROID_MASS = 200.0f;
 constexpr float MIN_ASTEROID_INITIAL_ACC = 10.0f;
 constexpr float MAX_ASTEROID_INITIAL_ACC = 20.0f;
@@ -16,6 +16,13 @@ constexpr float MIN_EXPLOSION_RADIUS = 10.0f;
 constexpr float MAX_EXPLOSION_RADIUS = 20.0f;
 constexpr float MAX_EXPLOSION_OFFSET = 10.0f;
 constexpr size_t EXPLOSION_CIRCLES = 20;
+constexpr float SUN_INITIAL_MASS = 1500.0f;
+constexpr float SUN_VAPORIZE_SPEED = 50.0f;
+constexpr float SUN_RED_GIANT_THRESHOLD = 100.0f;
+constexpr float SUN_BLACK_HOLE_THRESHOLD = 5000.0f;
+constexpr float BLACK_HOLE_RADIUS = 100.0f;
+constexpr float RED_GIANT_EXPAND_SPEED = 100.0f;
+constexpr float UPDATE_STEP_S = 1.0f / 60.0f;
 
 inline float rand_float(float min,
                         float max)
@@ -24,6 +31,12 @@ inline float rand_float(float min,
     static std::mt19937 random_gen;
 
     return std::uniform_real_distribution<float>(min, max)(random_gen);
+}
+
+inline sf::Vector2f rand_vector()
+{
+    float angle = rand_float(0.0f, M_PI);
+    return { std::cos(angle), std::sin(angle) };
 }
 
 constexpr float G = 6.67384;
@@ -62,7 +75,18 @@ inline sf::FloatRect moveRect(const sf::FloatRect& rect,
                          rect.width, rect.height);
 }
 
-struct Planet
+inline sf::Color colorForMass(float mass)
+{
+    float g = 255.0f;
+    if (mass > SUN_INITIAL_MASS) {
+        g -= 255.0f * (mass - SUN_INITIAL_MASS) / (SUN_BLACK_HOLE_THRESHOLD - SUN_INITIAL_MASS);
+    } else {
+        g -= 255.0f * (1.0f - (mass - SUN_RED_GIANT_THRESHOLD) / (SUN_INITIAL_MASS - SUN_RED_GIANT_THRESHOLD));
+    }
+    return { 255, (sf::Uint8)g, 0 };
+}
+
+struct Planet: public sf::Drawable
 {
     sf::Vector2f acceleration;
     float mass;
@@ -76,11 +100,13 @@ struct Planet
            const sf::Vector2f& initialAcceleration = { 0.0f, 0.0f },
            const sf::Color& color = sf::Color::Red):
         acceleration(initialAcceleration),
-        mass(mass),
-        radius(std::sqrt(mass / M_PI)),
+        mass(0.0f),
+        radius(0.0f),
         sprite(sf::CircleShape(radius)),
         immovable(false)
     {
+        setMass(mass);
+
         sprite.setPosition(initialPos);
         sprite.setOrigin(radius, radius);
         sprite.setFillColor(color);
@@ -93,6 +119,65 @@ struct Planet
         sprite.setRadius(radius);
         sprite.setOrigin(radius, radius);
     }
+
+protected:
+    virtual void draw(sf::RenderTarget& rt,
+                      sf::RenderStates states) const
+    {
+        rt.draw(sprite, states);
+    }
+};
+
+struct Sun: public Planet
+{
+    Sun() {}
+    Sun(float mass,
+        const sf::Vector2f& initialPos):
+        Planet(mass, initialPos, {}, colorForMass(mass)),
+        isRedGiant(false),
+        isBlackHole(false)
+    {
+    }
+
+    void update(float dt)
+    {
+        if (!isRedGiant) {
+            return;
+        }
+
+        radius += RED_GIANT_EXPAND_SPEED * dt;
+        sprite.setRadius(radius);
+        sprite.setOrigin(radius, radius);
+    }
+
+    void setMass(float newMass)
+    {
+        if (isRedGiant || isBlackHole) {
+            return;
+        }
+
+        Planet::setMass(newMass);
+        sprite.setFillColor(colorForMass(newMass));
+    }
+
+    void turnIntoRedGiant()
+    {
+        isRedGiant = true;
+        sprite.setFillColor(sf::Color::Red);
+    }
+
+    void turnIntoBlackHole()
+    {
+        isBlackHole = true;
+        mass = 1000000.0f;
+        radius = 0.0f;
+        sprite.setRadius(BLACK_HOLE_RADIUS);
+        sprite.setOrigin(BLACK_HOLE_RADIUS, BLACK_HOLE_RADIUS);
+        sprite.setFillColor(sf::Color::Black);
+    }
+
+    bool isRedGiant;
+    bool isBlackHole;
 };
 
 struct Explosion: public sf::Drawable
@@ -187,8 +272,12 @@ private:
     void init()
     {
         printf("init\n");
-        planet = Planet(PLANET_MASS, sf::Vector2f(0.f, 0.f));
-        planet.immovable = true;
+        planet = Planet(PLANET_MASS, sf::Vector2f(-100.f, 0.f));
+
+        sun = Sun(SUN_INITIAL_MASS, {});
+        sun.immovable = true;
+
+        accelerationLimit = 100.0f;
     }
 
     void handleInput()
@@ -264,13 +353,21 @@ private:
             }
 
             p1->acceleration += totalForce * dt;
+            if (p1 == &planet && !sun.isBlackHole) {
+                p1->acceleration = normalized(p1->acceleration) * std::sqrt(length(p1->acceleration));
+            }
+
+            if (sun.isBlackHole) {
+                accelerationLimit = distance(p1->sprite.getPosition(), sun.sprite.getPosition()) / UPDATE_STEP_S;
+            }
+            p1->acceleration = normalized(p1->acceleration) * clamp(length(p1->acceleration), 0.0f, accelerationLimit);
             //printf("acceleration = %f %f\n", p1->acceleration.x, p1->acceleration.y);
         }
     }
 
     void shakeScreen(float factor)
     {
-        screenShakeFactor = clamp(factor, 0.0f, 100.0f);
+        screenShakeFactor = std::max(screenShakeFactor, clamp(factor, 0.0f, 100.0f));
     }
 
     void handleCollision(Planet* first,
@@ -286,8 +383,10 @@ private:
             std::swap(first, second);
         }
 
-        if (first->immovable) {
+        if (first == &planet) {
             shakeScreen(std::exp(second->mass / 100.0f));
+        } else if (first == &sun) {
+            sun.setMass(sun.mass + second->mass);
         } else {
             float newMass = first->mass + second->mass;
             first->acceleration = (first->acceleration * first->mass + second->acceleration * second->mass) / newMass;
@@ -297,7 +396,10 @@ private:
         // FIXME: remove `second` in a 'prettier' way
         second->sprite.setPosition(100000.0f, 100000.0f);
 
-        explosions.push_back(Explosion(collisionPos));
+        if (!sun.isBlackHole) {
+            explosions.push_back(Explosion(collisionPos));
+            shakeScreen(first->mass / 4.0f / distance(collisionPos, planet.sprite.getPosition()));
+        }
     }
 
     void checkCollisions(const std::vector<Planet*> allObjects)
@@ -333,8 +435,7 @@ private:
             sf::Vector2f initialPos =
                     sf::Vector2f(std::cos(initialAngle) * initialDistance,
                                  std::sin(initialAngle) * initialDistance);
-            sf::Vector2f initialAcceleration =
-                    normalized(-initialPos)
+            sf::Vector2f initialAcceleration = rand_vector()
                     * rand_float(MIN_ASTEROID_INITIAL_ACC, MAX_ASTEROID_INITIAL_ACC);
             float mass = rand_float(MIN_ASTEROID_MASS, MAX_ASTEROID_MASS);
 
@@ -363,7 +464,7 @@ private:
 
     void doUpdateStep(float dt)
     {
-        std::vector<Planet*> allObjects { &planet };
+        std::vector<Planet*> allObjects { &sun, &planet };
         for (Planet& a: asteroids) {
             allObjects.push_back(&a);
         }
@@ -391,7 +492,7 @@ private:
         static float upTo2PiAccumulator = 0.0f;
         upTo2PiAccumulator = std::fmod(upTo2PiAccumulator + dt, (float)M_PI * 2.0f);
         shakeOffset = {
-            std::sin(upTo2PiAccumulator * 40.0f) * screenShakeFactor,
+            std::sin(upTo2PiAccumulator * 34.0f) * screenShakeFactor,
             std::cos(upTo2PiAccumulator * 43.0f) * screenShakeFactor
         };
 
@@ -404,7 +505,6 @@ private:
     void update(float dt)
     {
         static float timeAccumulator = 0.0f;
-        static constexpr float UPDATE_STEP_S = 1.0f / 60.0f;
 
         timeAccumulator += dt;
         while (timeAccumulator > UPDATE_STEP_S) {
@@ -412,6 +512,17 @@ private:
             doUpdateStep(UPDATE_STEP_S);
 
             planet.sprite.move(planetMoveDir);
+            sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * dt);
+
+            if (sun.mass <= SUN_RED_GIANT_THRESHOLD) {
+                printf("TODO: game over\n");
+                sun.turnIntoRedGiant();
+            } else if (sun.mass >= SUN_BLACK_HOLE_THRESHOLD) {
+                printf("TODO: game over\n");
+                sun.turnIntoBlackHole();
+            }
+
+            sun.update(dt);
         }
 
         updateShake(dt);
@@ -419,13 +530,14 @@ private:
 
     void draw()
     {
-        wnd->clear(sf::Color::Black);
+        wnd->clear(sf::Color(0, 0, 50));
         wnd->setView(sf::View(moveRect(viewRect, shakeOffset)));
 
-        wnd->draw(planet.sprite, sf::RenderStates::Default);
+        wnd->draw(planet);
+        wnd->draw(sun);
         for (const Planet& a: asteroids) {
             //printf("asteroid @ %f %f\n", a.sprite.getPosition().x, a.sprite.getPosition().y);
-            wnd->draw(a.sprite, sf::RenderStates::Default);
+            wnd->draw(a);
         }
 
         for (const Explosion& e: explosions) {
@@ -442,9 +554,12 @@ private:
     sf::Vector2f shakeOffset;
 
     sf::Vector2f planetMoveDir;
+    Sun sun;
     Planet planet;
     std::vector<Planet> asteroids;
     std::vector<Explosion> explosions;
+
+    float accelerationLimit;
 };
 
 int main(int /*argc*/,
