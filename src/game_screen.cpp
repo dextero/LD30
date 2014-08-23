@@ -1,10 +1,15 @@
 #include "game_screen.h"
 
+#include <sstream>
+
+#include <SFML/Graphics/Text.hpp>
+
 #include "utils.h"
 #include "game.h"
 
 GameScreen::GameScreen(Game& game):
-    Screen(game)
+    Screen(game),
+    points(0)
 {
     planet = Planet(PLANET_MASS, sf::Vector2f(-100.f, 0.f));
 
@@ -48,9 +53,9 @@ void GameScreen::update(float dt)
         }
 
         sun.update(dt);
+        messages.update(dt);
+        updateShake(dt);
     }
-
-    updateShake(dt);
 }
 
 void GameScreen::draw() const
@@ -60,7 +65,7 @@ void GameScreen::draw() const
 
     wnd->draw(planet);
     wnd->draw(sun);
-    for (const Planet& a: asteroids) {
+    for (const Asteroid& a: asteroids) {
         //printf("asteroid @ %f %f\n", a.sprite.getPosition().x, a.sprite.getPosition().y);
         wnd->draw(a);
     }
@@ -68,6 +73,14 @@ void GameScreen::draw() const
     for (const Explosion& e: explosions) {
         wnd->draw(e);
     }
+
+    std::stringstream ss;
+    ss << points;
+    sf::Text pointsText(ss.str(), game.font);
+    pointsText.setPosition(viewRect.left + 5, viewRect.top + 5);
+    wnd->draw(pointsText);
+
+    wnd->draw(messages);
 
     wnd->display();
 }
@@ -109,36 +122,36 @@ void GameScreen::onMouseMoved(const sf::Event& evt)
                               (float)evt.mouseMove.y + viewRect.top);
 }
 
-void GameScreen::updateForces(const std::vector<Planet*> allObjects,
+void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
                               float dt)
 {
-    for (Planet* p1: allObjects) {
-        if (p1->immovable) {
+    for (Asteroid* a1: allObjects) {
+        if (a1->immovable) {
             continue;
         }
 
         sf::Vector2f totalForce(0.0f, 0.0f);
 
-        for (Planet* p2: allObjects) {
-            if (p1 == p2) {
+        for (Asteroid* a2: allObjects) {
+            if (a1 == a2) {
                 continue;
             }
 
-            sf::Vector2f delta = p2->sprite.getPosition() - p1->sprite.getPosition();
+            sf::Vector2f delta = a2->sprite.getPosition() - a1->sprite.getPosition();
             sf::Vector2f dir = normalized(delta);
-            totalForce += dir * G * (p1->mass * p2->mass) / lengthSq(delta);
+            totalForce += dir * G * (a1->mass * a2->mass) / lengthSq(delta);
         }
 
-        p1->acceleration += totalForce * dt;
-        if (p1 == &planet && !sun.isBlackHole) {
-            p1->acceleration = normalized(p1->acceleration) * std::sqrt(length(p1->acceleration));
+        a1->acceleration += totalForce * dt;
+        if (a1 == &planet && !sun.isBlackHole) {
+            a1->acceleration = normalized(a1->acceleration) * std::sqrt(length(a1->acceleration));
         }
 
         if (sun.isBlackHole) {
-            accelerationLimit = distance(p1->sprite.getPosition(), sun.sprite.getPosition()) / UPDATE_STEP_S;
+            accelerationLimit = distance(a1->sprite.getPosition(), sun.sprite.getPosition()) / UPDATE_STEP_S;
         }
-        p1->acceleration = normalized(p1->acceleration) * clamp(length(p1->acceleration), 0.0f, accelerationLimit);
-        //printf("acceleration = %f %f\n", p1->acceleration.x, p1->acceleration.y);
+        a1->acceleration = normalized(a1->acceleration) * clamp(length(a1->acceleration), 0.0f, accelerationLimit);
+        //printf("acceleration = %f %f\n", a1->acceleration.x, a1->acceleration.y);
     }
 }
 
@@ -152,8 +165,8 @@ void GameScreen::gameOver()
     game.setState(Game::State::Over);
 }
 
-void GameScreen::handleCollision(Planet* first,
-                                 Planet* second,
+void GameScreen::handleCollision(Asteroid* first,
+                                 Asteroid* second,
                                  const sf::Vector2f& collisionPos)
 {
     if (first->immovable && second->immovable) {
@@ -170,12 +183,18 @@ void GameScreen::handleCollision(Planet* first,
         gameOver();
     } else if (first == &planet) {
         shakeScreen(std::exp(second->mass / 100.0f));
+
+        addPoints(-(ssize_t)second->mass, collisionPos);
     } else if (first == &sun) {
         sun.setMass(sun.mass + second->mass);
+
+        addPoints((ssize_t)second->mass, collisionPos);
     } else {
         float newMass = first->mass + second->mass;
         first->acceleration = (first->acceleration * first->mass + second->acceleration * second->mass) / newMass;
         first->setMass(newMass);
+
+        addPoints((ssize_t)std::sqrt(newMass), collisionPos);
     }
 
     // FIXME: remove `second` in a 'prettier' way
@@ -187,19 +206,19 @@ void GameScreen::handleCollision(Planet* first,
     }
 }
 
-void GameScreen::checkCollisions(const std::vector<Planet*> allObjects)
+void GameScreen::checkCollisions(const std::vector<Asteroid*> allObjects)
 {
     for (size_t i = 0; i < allObjects.size(); ++i) {
         for (size_t j = i + 1; j < allObjects.size(); ++j) {
-            Planet* p1 = allObjects[i];
-            Planet* p2 = allObjects[j];
+            Asteroid* a1 = allObjects[i];
+            Asteroid* a2 = allObjects[j];
 
-            const sf::Vector2f& pos1 = p1->sprite.getPosition();
-            const sf::Vector2f& pos2 = p2->sprite.getPosition();
+            const sf::Vector2f& pos1 = a1->sprite.getPosition();
+            const sf::Vector2f& pos2 = a2->sprite.getPosition();
 
-            if (distance(pos1, pos2) < p1->radius + p2->radius) {
-                sf::Vector2f collisionPos = pos1 + normalized(pos2 - pos1) * p1->radius;
-                handleCollision(p1, p2, collisionPos);
+            if (distance(pos1, pos2) < a1->radius + a2->radius) {
+                sf::Vector2f collisionPos = pos1 + normalized(pos2 - pos1) * a1->radius;
+                handleCollision(a1, a2, collisionPos);
             }
         }
     }
@@ -208,7 +227,6 @@ void GameScreen::checkCollisions(const std::vector<Planet*> allObjects)
 void GameScreen::spawnAsteroids(float dt)
 {
     static float timeAccumulator = 0.0f;
-    static constexpr float ASTEROID_SPAWN_DELAY_S = 1.0f;
 
     timeAccumulator += dt;
 
@@ -220,12 +238,13 @@ void GameScreen::spawnAsteroids(float dt)
         sf::Vector2f initialPos =
                 sf::Vector2f(std::cos(initialAngle) * initialDistance,
                              std::sin(initialAngle) * initialDistance);
-        sf::Vector2f initialAcceleration = rand_vector()
-                * rand_float(MIN_ASTEROID_INITIAL_ACC, MAX_ASTEROID_INITIAL_ACC);
+        sf::Vector2f initialVelocity = rand_vector()
+                * rand_float(MIN_ASTEROID_INITIAL_VELOCITY,
+                             MAX_ASTEROID_INITIAL_VELOCITY);
         float mass = rand_float(MIN_ASTEROID_MASS, MAX_ASTEROID_MASS);
 
-        asteroids.emplace_back(mass, initialPos, initialAcceleration,
-                               sf::Color::Blue);
+        asteroids.push_back({ mass, initialPos, initialVelocity, {},
+                              sf::Color::Blue });
     }
 }
 
@@ -249,16 +268,16 @@ void GameScreen::removeOutOfBounds()
 
 void GameScreen::doUpdateStep(float dt)
 {
-    std::vector<Planet*> allObjects { &sun, &planet };
-    for (Planet& a: asteroids) {
+    std::vector<Asteroid*> allObjects { &sun, &planet };
+    for (Asteroid& a: asteroids) {
         allObjects.push_back(&a);
     }
 
     checkCollisions(allObjects);
     updateForces(allObjects, dt);
 
-    for (Planet* p: allObjects) {
-        p->sprite.move(p->acceleration * dt);
+    for (Asteroid* p: allObjects) {
+        p->update(dt);
     }
     for (Explosion& e: explosions) {
         e.update(dt);
@@ -281,5 +300,20 @@ void GameScreen::updateShake(float dt)
     if (screenShakeFactor < 1.0f) {
         screenShakeFactor = 0.0f;
     }
+}
+
+void GameScreen::addPoints(ssize_t delta,
+                           const sf::Vector2f& source)
+{
+    sf::Color color = sf::Color::Green;
+    if (delta < 0) {
+        color = sf::Color::Red;
+    }
+
+    points += delta;
+
+    std::stringstream ss;
+    ss << delta;
+    messages.add(ss.str(), source, color);
 }
 

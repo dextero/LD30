@@ -1,5 +1,12 @@
 #include "game.h"
 
+Game::Game()
+{
+    if (!font.loadFromFile("DejaVuSans.ttf")) {
+        abort();
+    }
+}
+
 void Game::setState(State state)
 {
     switch (state) {
@@ -18,9 +25,11 @@ void Game::run()
     sf::Clock clock;
 
     while (wnd->isOpen()) {
-        screen->handleInput();
-        screen->update(clock.restart().asSeconds());
-        screen->draw();
+        std::shared_ptr<Screen> currScreen = screen;
+
+        currScreen->handleInput();
+        currScreen->update(clock.restart().asSeconds());
+        currScreen->draw();
     }
 }
 

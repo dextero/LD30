@@ -2,7 +2,7 @@
 
 #include "planet.h"
 
-struct Sun: public Planet
+struct Sun: public Asteroid
 {
     bool isRedGiant;
     bool isBlackHole;
@@ -11,8 +11,8 @@ struct Sun: public Planet
     Sun(float mass,
         const sf::Vector2f& initialPos);
 
-    void update(float dt);
-    void setMass(float newMass);
+    virtual void update(float dt);
+    virtual void setMass(float newMass);
 
     void turnIntoRedGiant();
     void turnIntoBlackHole();

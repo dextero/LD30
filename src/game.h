@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Graphics/Font.hpp>
 
 #include "screen.h"
 #include "menu_screen.h"
@@ -22,6 +23,9 @@ public:
 
     std::shared_ptr<sf::RenderWindow> wnd;
     std::shared_ptr<Screen> screen;
+    sf::Font font;
+
+    Game();
 
     void setState(State state);
     void run();

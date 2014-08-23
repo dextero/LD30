@@ -16,7 +16,7 @@ inline sf::Color colorForMass(float mass)
 
 Sun::Sun(float mass,
          const sf::Vector2f& initialPos):
-    Planet(mass, initialPos, {}, colorForMass(mass)),
+    Asteroid(mass, initialPos, {}, {}, colorForMass(mass)),
     isRedGiant(false),
     isBlackHole(false)
 {
@@ -24,6 +24,8 @@ Sun::Sun(float mass,
 
 void Sun::update(float dt)
 {
+    Asteroid::update(dt);
+
     if (!isRedGiant) {
         return;
     }
@@ -39,7 +41,7 @@ void Sun::setMass(float newMass)
         return;
     }
 
-    Planet::setMass(newMass);
+    Asteroid::setMass(newMass);
     sprite.setFillColor(colorForMass(newMass));
 }
 

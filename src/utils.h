@@ -3,7 +3,7 @@
 #include <random>
 #include <cmath>
 
-constexpr float G = 6.67384;
+constexpr float G = 6.67384e+1;
 
 inline float rand_float(float min,
                         float max)
