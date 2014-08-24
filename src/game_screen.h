@@ -28,8 +28,8 @@ private:
     sf::Vector2f shakeOffset;
 
     Sun sun;
-    sf::Vector2f planetMoveDir[2];
-    PlanetSystem planets;
+    sf::Vector2f planetMoveDir;
+    Planet planet;
     std::vector<Asteroid> asteroids;
     std::vector<Explosion> explosions;
 
@@ -37,6 +37,8 @@ private:
 
     PopupMessages messages;
     float gameOverDelay;
+
+    void toggleAttach();
 
     void onKeyPressed(const sf::Event& evt);
     void onKeyReleased(const sf::Event& evt);

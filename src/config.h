@@ -15,7 +15,7 @@ constexpr float GAME_OVER_DELAY = 3.0f;
 constexpr float PLANET_MASS = 1000.0f;
 constexpr float PLANET_SPEED = 10.0f;
 
-constexpr float ASTEROID_SPAWN_DELAY_S = 0.1f;
+constexpr float ASTEROID_SPAWN_DELAY_S = 0.5f;
 constexpr float ASTEROID_INITIAL_DISTANCE = 700.0f;
 constexpr float ASTEROID_INITIAL_ANGLE_VARIANCE = 1.0f;
 constexpr float ASTEROID_MAX_DISTANCE = ASTEROID_INITIAL_DISTANCE + 500.0f;

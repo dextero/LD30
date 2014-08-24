@@ -1,5 +1,7 @@
 #include "planet.h"
 
+#include <cassert>
+
 #include <SFML/Graphics/RenderTarget.hpp>
 
 #include "utils.h"
@@ -33,60 +35,61 @@ void Planet::update(float dt)
     sprite.move(delta);
 
     acceleration = { 0.0f, 0.0f };
+
+    updateAttached(dt);
 }
 
-PlanetSystem::PlanetSystem(float mass1,
-                           const sf::Vector2f& initialPos1,
-                           float mass2,
-                           const sf::Vector2f& initialPos2):
-    first(mass1, initialPos1),
-    second(mass2, initialPos2)
+void Planet::attach(Asteroid&& asteroid)
 {
+    assert(!attached);
+
+    sf::Vector2f delta = asteroid.sprite.getPosition() - sprite.getPosition();
+    attachedRadius = length(delta);
+    attachedAngle = std::atan2(delta.y, delta.x);
+    attachedLinearSpeed = length(asteroid.velocity);
+
+    attached.reset(new Asteroid(asteroid));
 }
 
-void PlanetSystem::update(float dt)
+Asteroid Planet::detach()
 {
-    first.update(dt);
-    second.update(dt);
+    assert(attached);
+
+    Asteroid ret = *attached;
+    attached.reset();
+    return ret;
 }
 
-void PlanetSystem::draw(sf::RenderTarget& rt,
-                        sf::RenderStates /*states*/) const
+void Planet::draw(sf::RenderTarget& rt,
+                  sf::RenderStates states) const
 {
-    sf::Vertex linePoints[2] {
-        { first.sprite.getPosition() },
-        { second.sprite.getPosition() }
-    };
+    if (attached) {
+        sf::Vertex linePoints[2] {
+            { sprite.getPosition() },
+            { attached->sprite.getPosition() }
+        };
 
-    rt.draw(linePoints, 2, sf::Lines);
-
-    rt.draw(first);
-    rt.draw(second);
-}
-
-
-bool PlanetSystem::ropeCollidesWith(const sf::Vector2f& center,
-                                    float radius)
-{
-    sf::Vector2f v1 = center - first.sprite.getPosition();
-    sf::Vector2f v2 = center - second.sprite.getPosition();
-    sf::Vector2f first2second = second.sprite.getPosition() - first.sprite.getPosition();
-    sf::Vector2f f2sNormalized = normalized(first2second);
-
-    float dot1 = dot(normalized(v1), f2sNormalized);
-    float dot2 = dot(normalized(v2), -f2sNormalized);
-
-    if (dot1 < 0.0f || dot2 < 0.0f) {
-        return false;
+        rt.draw(linePoints, 2, sf::Lines);
+        rt.draw(*attached);
     }
 
-    float dist = length(v1) * std::sqrt(1.0f - dot1 * dot1);
-    return dist <= radius;
+    Asteroid::draw(rt, states);
 }
 
-sf::Vector2f PlanetSystem::getRopeNormal() const
+void Planet::updateAttached(float dt)
 {
-    sf::Vector2f first2second = second.sprite.getPosition() - first.sprite.getPosition();
-    return normalized({ first2second.y, -first2second.x });
+    if (!attached) {
+        return;
+    }
+
+    attachedAngle += attachedLinearSpeed / attachedRadius * dt;
+
+    sf::Vector2f offset(std::cos(attachedAngle), std::sin(attachedAngle));
+    offset *= attachedRadius;
+
+    attached->sprite.setPosition(sprite.getPosition() + offset);
+    attached->acceleration = { 0.0f, 0.0f };
+
+    attached->velocity = { -offset.y, offset.x };
 }
 

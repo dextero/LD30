@@ -11,8 +11,7 @@ GameScreen::GameScreen(Game& game):
     Screen(game),
     screenShakeFactor(0.0f),
     sun(SUN_INITIAL_MASS, {}),
-    planets(PLANET_MASS, sf::Vector2f(-300.f, -100.f),
-            PLANET_MASS * 4.0f / 5.0f, sf::Vector2f(-200.f, -200.f)),
+    planet(PLANET_MASS, sf::Vector2f(-300.f, -100.f)),
     points(0),
     gameOverDelay(-1.0f)
 {
@@ -48,8 +47,7 @@ void GameScreen::update(float dt)
                 game.setState(Game::State::Over);
             }
         } else {
-            planets.first.sprite.move(planetMoveDir[0]);
-            planets.second.sprite.move(planetMoveDir[1]);
+            planet.sprite.move(planetMoveDir);
         }
 
         sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * UPDATE_STEP_S);
@@ -71,7 +69,7 @@ void GameScreen::draw() const
     wnd->clear(sf::Color(0, 0, 50));
     wnd->setView(sf::View(moveRect(viewRect, shakeOffset)));
 
-    wnd->draw(planets);
+    wnd->draw(planet);
     for (const Asteroid& a: asteroids) {
         //printf("asteroid @ %f %f\n", a.sprite.getPosition().x, a.sprite.getPosition().y);
         wnd->draw(a);
@@ -99,16 +97,42 @@ void GameScreen::onKeyPressed(const sf::Event& evt)
     case sf::Keyboard::Escape:
         wnd->close();
         break;
-    case sf::Keyboard::Left:  planetMoveDir[0].x = clamp(planetMoveDir[0].x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Right: planetMoveDir[0].x = clamp(planetMoveDir[0].x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Up:    planetMoveDir[0].y = clamp(planetMoveDir[0].y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Down:  planetMoveDir[0].y = clamp(planetMoveDir[0].y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::A: planetMoveDir[1].x = clamp(planetMoveDir[1].x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::D: planetMoveDir[1].x = clamp(planetMoveDir[1].x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::W: planetMoveDir[1].y = clamp(planetMoveDir[1].y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::S: planetMoveDir[1].y = clamp(planetMoveDir[1].y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Left:  planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     default:
         break;
+    }
+}
+
+void GameScreen::toggleAttach()
+{
+    if (planet.hasAttachedAsteroid()) {
+        asteroids.push_back(planet.detach());
+    } else {
+        if (asteroids.size() == 0) {
+            printf("uh oh\n");
+            return;
+        }
+
+        size_t closestIdx = 0;
+        float closestDistance = distance(planet.sprite.getPosition(), asteroids[0].sprite.getPosition());
+        for (size_t i = 1; i < asteroids.size(); ++i) {
+            float dist = distance(planet.sprite.getPosition(), asteroids[i].sprite.getPosition());
+            if (dist < closestDistance) {
+                closestIdx = i;
+                closestDistance = dist;
+            }
+        }
+
+        Asteroid toAttach = std::move(asteroids[closestIdx]);
+        if (closestIdx != asteroids.size() - 1) {
+            asteroids[closestIdx] = asteroids.back();
+        }
+        asteroids.pop_back();
+
+        planet.attach(std::move(toAttach));
     }
 }
 
@@ -118,14 +142,11 @@ void GameScreen::onKeyReleased(const sf::Event& evt)
     case sf::Keyboard::Escape:
         wnd->close();
         break;
-    case sf::Keyboard::Left:  planetMoveDir[0].x = clamp(planetMoveDir[0].x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Right: planetMoveDir[0].x = clamp(planetMoveDir[0].x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Up:    planetMoveDir[0].y = clamp(planetMoveDir[0].y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Down:  planetMoveDir[0].y = clamp(planetMoveDir[0].y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::A: planetMoveDir[1].x = clamp(planetMoveDir[1].x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::D: planetMoveDir[1].x = clamp(planetMoveDir[1].x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::W: planetMoveDir[1].y = clamp(planetMoveDir[1].y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::S: planetMoveDir[1].y = clamp(planetMoveDir[1].y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Left:  planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Space: toggleAttach(); break;
     default:
         break;
     }
@@ -159,8 +180,7 @@ void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
         }
 
         a1->acceleration += totalForce * dt;
-        if ((a1 == &planets.first || a1 == &planets.second)
-                && !sun.isBlackHole) {
+        if (a1 == &planet && !sun.isBlackHole) {
             a1->acceleration = normalized(a1->acceleration) * std::sqrt(length(a1->acceleration));
         }
 
@@ -195,17 +215,12 @@ void GameScreen::handleCollision(Asteroid* first,
         std::swap(first, second);
     }
 
-    if (first == &sun &&
-            (second == &planets.first || second == &planets.second)) {
+    if (first == &sun && second == &planet) {
         gameOver();
-    } else if (first == &planets.first || first == &planets.second) {
-        if (second == &planets.first || second == &planets.second) {
-            printf("THIS IS WAR, TODO\n");
-        } else {
-            shakeScreen(std::exp(second->mass / 100.0f));
+    } else if (first == &planet) {
+        shakeScreen(std::exp(second->mass / 100.0f));
 
-            addPoints(-(ssize_t)second->mass, collisionPos);
-        }
+        addPoints(-(ssize_t)second->mass, collisionPos);
     } else if (first == &sun) {
         sun.setMass(sun.mass + second->mass);
 
@@ -222,9 +237,9 @@ void GameScreen::handleCollision(Asteroid* first,
 
     if (!sun.isBlackHole) {
         explosions.push_back(Explosion(collisionPos));
-        float d1 = distance(collisionPos, planets.first.sprite.getPosition());
-        float d2 = distance(collisionPos, planets.second.sprite.getPosition());
-        shakeScreen(first->mass / 4.0f / std::min(d1, d2));
+
+        float dist = distance(collisionPos, planet.sprite.getPosition());
+        shakeScreen(first->mass / 4.0f / dist);
     }
 }
 
@@ -305,24 +320,14 @@ void GameScreen::removeOutOfBounds()
     }
 }
 
-void GameScreen::checkRopeCollisions()
-{
-    for (Asteroid& a: asteroids) {
-        if (planets.ropeCollidesWith(a.sprite.getPosition(), a.radius)) {
-            a.rebound(planets.getRopeNormal());
-        }
-    }
-}
-
 void GameScreen::doUpdateStep(float dt)
 {
-    std::vector<Asteroid*> allObjects { &sun, &planets.first, &planets.second };
+    std::vector<Asteroid*> allObjects { &sun, &planet };
     for (Asteroid& a: asteroids) {
         allObjects.push_back(&a);
     }
 
     checkCollisions(allObjects);
-    checkRopeCollisions();
     updateForces(allObjects, dt);
 
     for (Asteroid* p: allObjects) {
