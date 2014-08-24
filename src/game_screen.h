@@ -33,7 +33,7 @@ private:
     Planet planet;
     std::vector<Asteroid> asteroids;
     std::vector<Explosion> explosions;
-    Asteroid* selected;
+    ssize_t selectedAsteroid;
 
     float crosshairAngle;
     float crosshairMoveDir;
@@ -45,7 +45,7 @@ private:
     PopupMessages messages;
     float gameOverDelay;
 
-    Asteroid* findClosestTo(const sf::Vector2f& pos);
+    ssize_t findClosestTo(const sf::Vector2f& pos);
     void attractSelected();
     void setCrosshairMoveDir(int dir);
 

@@ -12,11 +12,11 @@ GameScreen::GameScreen(Game& game):
     screenShakeFactor(0.0f),
     sun(SUN_INITIAL_MASS, {}),
     planet(PLANET_MASS, sf::Vector2f(-300.f, -100.f)),
-    selected(nullptr),
-    points(0),
-    gameOverDelay(-1.0f),
+    selectedAsteroid(-1),
     crosshairAngle(0.0f),
-    crosshairMoveDir(0.0f)
+    crosshairMoveDir(0.0f),
+    points(0),
+    gameOverDelay(-1.0f)
 {
     if (!crosshairTexture.loadFromFile("data/crosshair.png")) {
         printf("cannot load data/crosshair.png\n");
@@ -63,10 +63,6 @@ void GameScreen::update(float dt)
             sf::Vector2f offset(std::cos(crosshairAngle), std::sin(crosshairAngle));
             offset *= CROSSHAIR_DISTANCE;
             crosshair.setPosition(planet.getPosition() + offset);
-
-            if (selected) {
-                selected->attractTo(planet.getPosition(), ATTRACT_MASS, UPDATE_STEP_S);
-            }
         }
 
         sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * UPDATE_STEP_S);
@@ -87,6 +83,17 @@ void GameScreen::draw() const
 {
     wnd->clear(sf::Color(0, 0, 50));
     wnd->setView(sf::View(moveRect(viewRect, shakeOffset)));
+
+    if (selectedAsteroid >= 0) {
+        const Asteroid& selected = asteroids[selectedAsteroid];
+
+        sf::Vertex lineVerts[] {
+            selected.getPosition(),
+            selected.getPosition() + normalized(selected.velocity) * VELOCITY_LINE_LENGTH
+        };
+
+        wnd->draw(lineVerts, 2, sf::Lines);
+    }
 
     wnd->draw(planet);
     for (const Asteroid& a: asteroids) {
@@ -122,9 +129,9 @@ void GameScreen::setCrosshairMoveDir(int dir) {
     }
 
     if (std::fmod(crosshairAngle, 2.0f * M_PI) > M_PI) {
-        crosshairMoveDir = -(float)dir;
-    } else {
         crosshairMoveDir = (float)dir;
+    } else {
+        crosshairMoveDir = -(float)dir;
     }
 }
 
@@ -141,10 +148,10 @@ void GameScreen::onKeyPressed(const sf::Event& evt)
     case sf::Keyboard::A: setCrosshairMoveDir(-1); break;
     case sf::Keyboard::S: setCrosshairMoveDir(1); break;
     case sf::Keyboard::Space:
-        if (!selected) {
-            selected = findClosestTo(crosshair.getPosition());
-            if (selected) {
-                selected->sprite.setFillColor(SELECTED_ASTEROID_COLOR);
+        if (selectedAsteroid < 0) {
+            selectedAsteroid = findClosestTo(crosshair.getPosition());
+            if (selectedAsteroid >= 0) {
+                asteroids[selectedAsteroid].sprite.setFillColor(SELECTED_ASTEROID_COLOR);
             }
         }
         break;
@@ -153,10 +160,10 @@ void GameScreen::onKeyPressed(const sf::Event& evt)
     }
 }
 
-Asteroid* GameScreen::findClosestTo(const sf::Vector2f& pos)
+ssize_t GameScreen::findClosestTo(const sf::Vector2f& pos)
 {
     if (asteroids.size() == 0) {
-        return nullptr;
+        return -1;
     }
 
     size_t closestIdx = 0;
@@ -170,10 +177,10 @@ Asteroid* GameScreen::findClosestTo(const sf::Vector2f& pos)
     }
 
     if (closestDistance > MAX_SELECT_DISTANCE) {
-        return nullptr;
+        return -1;
     }
 
-    return &asteroids[closestIdx];
+    return (ssize_t)closestIdx;
 }
 
 void GameScreen::onKeyReleased(const sf::Event& evt)
@@ -189,10 +196,10 @@ void GameScreen::onKeyReleased(const sf::Event& evt)
     case sf::Keyboard::A: 
     case sf::Keyboard::S: setCrosshairMoveDir(0); break;
     case sf::Keyboard::Space:
-        if (selected) {
-            selected->sprite.setFillColor(ASTEROID_COLOR);
+        if (selectedAsteroid >= 0) {
+            asteroids[selectedAsteroid].sprite.setFillColor(ASTEROID_COLOR);
         }
-        selected = nullptr;
+        selectedAsteroid = -1;
         break;
     default:
         break;
@@ -212,6 +219,11 @@ void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
     for (Asteroid* a1: allObjects) {
         if (a1->immovable) {
             continue;
+        }
+
+        a1->acceleration = { 0.0f, 0.0f };
+        if (a1 == &asteroids[selectedAsteroid]) {
+            a1->attractTo(planet.getPosition(), ATTRACT_MASS, UPDATE_STEP_S);
         }
 
         for (Asteroid* a2: allObjects) {
@@ -352,6 +364,10 @@ void GameScreen::removeOutOfBounds()
 
         if (markedForDelete
                 || lengthSq(pos) > ASTEROID_MAX_DISTANCE * ASTEROID_MAX_DISTANCE) {
+            if (selectedAsteroid == (ssize_t)i) {
+                selectedAsteroid = -1;
+            }
+
             if (i != asteroids.size() - 1) {
                 asteroids[i] = std::move(asteroids.back());
             }

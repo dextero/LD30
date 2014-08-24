@@ -17,6 +17,7 @@ constexpr float GAME_OVER_DELAY = 3.0f;
 constexpr float CROSSHAIR_ANGULAR_SPEED = 2.0f * M_PI;
 constexpr float CROSSHAIR_DISTANCE = 100.0f;
 constexpr float MAX_SELECT_DISTANCE = 50.0f;
+constexpr float VELOCITY_LINE_LENGTH = 100.0f;
 
 constexpr float PLANET_MASS = 1000.0f;
 constexpr float PLANET_SPEED = 200.0f;
@@ -26,8 +27,8 @@ constexpr float ASTEROID_SPAWN_DELAY_S = 0.5f;
 constexpr float ASTEROID_INITIAL_DISTANCE = 700.0f;
 constexpr float ASTEROID_INITIAL_ANGLE_VARIANCE = 1.0f;
 constexpr float ASTEROID_MAX_DISTANCE = ASTEROID_INITIAL_DISTANCE + 500.0f;
-constexpr float MIN_ASTEROID_MASS = 10.0f;
-constexpr float MAX_ASTEROID_MASS = 50.0f;
+constexpr float MIN_ASTEROID_MASS = 20.0f;
+constexpr float MAX_ASTEROID_MASS = 70.0f;
 constexpr float MIN_ASTEROID_INITIAL_VELOCITY = 50.0f;
 constexpr float MAX_ASTEROID_INITIAL_VELOCITY = 100.0f;
 
