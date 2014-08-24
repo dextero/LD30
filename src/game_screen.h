@@ -35,7 +35,8 @@ private:
     std::vector<Explosion> explosions;
     Asteroid* selected;
 
-    sf::Vector2f crosshairMoveDir;
+    float crosshairAngle;
+    float crosshairMoveDir;
     sf::Texture crosshairTexture;
     sf::Sprite crosshair;
 
@@ -46,6 +47,7 @@ private:
 
     Asteroid* findClosestTo(const sf::Vector2f& pos);
     void attractSelected();
+    void setCrosshairMoveDir(int dir);
 
     void onKeyPressed(const sf::Event& evt);
     void onKeyReleased(const sf::Event& evt);

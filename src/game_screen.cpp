@@ -14,7 +14,9 @@ GameScreen::GameScreen(Game& game):
     planet(PLANET_MASS, sf::Vector2f(-300.f, -100.f)),
     selected(nullptr),
     points(0),
-    gameOverDelay(-1.0f)
+    gameOverDelay(-1.0f),
+    crosshairAngle(0.0f),
+    crosshairMoveDir(0.0f)
 {
     if (!crosshairTexture.loadFromFile("data/crosshair.png")) {
         printf("cannot load data/crosshair.png\n");
@@ -56,7 +58,11 @@ void GameScreen::update(float dt)
             }
         } else {
             planet.sprite.move(planetMoveDir * UPDATE_STEP_S);
-            crosshair.move(crosshairMoveDir * UPDATE_STEP_S);
+
+            crosshairAngle += crosshairMoveDir * CROSSHAIR_ANGULAR_SPEED * UPDATE_STEP_S;
+            sf::Vector2f offset(std::cos(crosshairAngle), std::sin(crosshairAngle));
+            offset *= CROSSHAIR_DISTANCE;
+            crosshair.setPosition(planet.getPosition() + offset);
 
             if (selected) {
                 selected->attractTo(planet.getPosition(), ATTRACT_MASS, UPDATE_STEP_S);
@@ -105,6 +111,23 @@ void GameScreen::draw() const
     wnd->display();
 }
 
+void GameScreen::setCrosshairMoveDir(int dir) {
+    if (dir == 0) {
+        crosshairMoveDir = 0.0f;
+        return;
+    }
+
+    if (crosshairMoveDir != 0.0f) {
+        return;
+    }
+
+    if (std::fmod(crosshairAngle, 2.0f * M_PI) > M_PI) {
+        crosshairMoveDir = -(float)dir;
+    } else {
+        crosshairMoveDir = (float)dir;
+    }
+}
+
 void GameScreen::onKeyPressed(const sf::Event& evt)
 {
     switch (evt.key.code) {
@@ -115,10 +138,8 @@ void GameScreen::onKeyPressed(const sf::Event& evt)
     case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::A: crosshairMoveDir.x = clamp(crosshairMoveDir.x - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
-    case sf::Keyboard::D: crosshairMoveDir.x = clamp(crosshairMoveDir.x + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
-    case sf::Keyboard::W: crosshairMoveDir.y = clamp(crosshairMoveDir.y - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
-    case sf::Keyboard::S: crosshairMoveDir.y = clamp(crosshairMoveDir.y + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::A: setCrosshairMoveDir(-1); break;
+    case sf::Keyboard::S: setCrosshairMoveDir(1); break;
     case sf::Keyboard::Space:
         if (!selected) {
             selected = findClosestTo(crosshair.getPosition());
@@ -165,10 +186,8 @@ void GameScreen::onKeyReleased(const sf::Event& evt)
     case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::A: crosshairMoveDir.x = clamp(crosshairMoveDir.x + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
-    case sf::Keyboard::D: crosshairMoveDir.x = clamp(crosshairMoveDir.x - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
-    case sf::Keyboard::W: crosshairMoveDir.y = clamp(crosshairMoveDir.y + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
-    case sf::Keyboard::S: crosshairMoveDir.y = clamp(crosshairMoveDir.y - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::A: 
+    case sf::Keyboard::S: setCrosshairMoveDir(0); break;
     case sf::Keyboard::Space:
         if (selected) {
             selected->sprite.setFillColor(ASTEROID_COLOR);

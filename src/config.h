@@ -13,7 +13,9 @@ const std::string WINDOW_TITLE = "LD30";
 
 constexpr float UPDATE_STEP_S = 1.0f / 60.0f;
 constexpr float GAME_OVER_DELAY = 3.0f;
-constexpr float CROSSHAIR_SPEED = 200.0f;
+
+constexpr float CROSSHAIR_ANGULAR_SPEED = 2.0f * M_PI;
+constexpr float CROSSHAIR_DISTANCE = 100.0f;
 constexpr float MAX_SELECT_DISTANCE = 50.0f;
 
 constexpr float PLANET_MASS = 1000.0f;
