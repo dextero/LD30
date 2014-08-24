@@ -9,7 +9,7 @@ constexpr float G = 6.67384e0;
 
 constexpr unsigned WINDOW_WIDTH = 1280;
 constexpr unsigned WINDOW_HEGIHT = 900;
-const std::string WINDOW_TITLE = "LD30";
+const std::string WINDOW_TITLE = "Gravity Beams & Evaporating Stars: The Game";
 
 constexpr float UPDATE_STEP_S = 1.0f / 60.0f;
 constexpr float GAME_OVER_DELAY = 3.0f;

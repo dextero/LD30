@@ -15,17 +15,14 @@ void Game::setState(State state)
     switch (state) {
     case State::Menu:
         screen.reset(new MenuScreen(*this));
-        wnd->setTitle(WINDOW_TITLE + " / menu");
         break;
     case State::Running:
         screen.reset(new GameScreen(*this));
-        wnd->setTitle(WINDOW_TITLE + " / game");
         break;
     case State::Over:
         {
             const GameScreen& prev = dynamic_cast<GameScreen&>(*screen);
             screen.reset(new GameOverScreen(*this, prev.getPoints()));
-            wnd->setTitle(WINDOW_TITLE + " / game over");
             break;
         }
     }

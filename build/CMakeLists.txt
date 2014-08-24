@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.5)
 set(CMAKE_CXX_COMPILER clang++)
 
-project(sandbox)
+project(LD30)
 
 include(${CMAKE_SOURCE_DIR}/utils.cmake)
 
@@ -31,10 +31,10 @@ set(CMAKE_BUILD_TYPE Debug)
 # external libraries
 set(CMAKE_MODULE_PATH "${SFML_ROOT}/cmake/Modules" ${CMAKE_MODULE_PATH})
 set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${SFML_ROOT}/lib")
-find_library(SFML 2 REQUIRED system window graphics network audio)
+find_library(SFML 2 REQUIRED system window graphics audio)
 
 include_directories(${SFML_INCLUDE_DIRS})
-set(LIBS -ldl ${LIBS} ${SFML_LIBRARIES})
+set(LIBS ${LIBS} ${SFML_LIBRARIES})
 
 # project sources
 include_directories(${ROOT_DIR}/src)

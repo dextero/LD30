@@ -18,19 +18,6 @@ GameOverScreen::GameOverScreen(Game& game,
     sunSprite(sunTexture),
     asteroidSprite(asteroidTexture)
 {
-    std::ifstream hiscoreFile("scores");
-    if (!hiscoreFile.is_open()) {
-        return;
-    }
-
-    while (hiscoreFile) {
-        HiscoreEntry entry;
-        hiscoreFile >> entry.nick >> entry.score;
-        if (!hiscoreFile.eof()) {
-            hiscore.push_back(entry);
-        }
-    }
-
     planetSprite.setOrigin(sf::Vector2f(planetTexture.getSize()) / 2.0f);
     planetSprite.setScale(2.0f, 2.0f);
     planetSprite.setPosition(400.0f, 300.0f);
@@ -44,6 +31,19 @@ GameOverScreen::GameOverScreen(Game& game,
     asteroidSprite.setScale(0.7f, 0.7f);
     asteroidSprite.setRotation(42.0f);
     asteroidSprite.setPosition(-300.0f, 200.0f);
+
+    std::ifstream hiscoreFile("scores");
+    if (!hiscoreFile.is_open()) {
+        return;
+    }
+
+    while (hiscoreFile) {
+        HiscoreEntry entry;
+        hiscoreFile >> entry.nick >> entry.score;
+        if (!hiscoreFile.eof()) {
+            hiscore.push_back(entry);
+        }
+    }
 }
 
 void GameOverScreen::saveScores()
