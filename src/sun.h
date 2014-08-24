@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/Graphics/CircleShape.hpp>
+
 #include "planet.h"
 
 struct Sun: public Asteroid
@@ -18,6 +20,7 @@ struct Sun: public Asteroid
     void turnIntoBlackHole();
 
 private:
+    sf::CircleShape circle;
     float redGiantExpandFactor;
 };
 

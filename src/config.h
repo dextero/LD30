@@ -7,8 +7,8 @@
 constexpr float EPSILON = 0.001f;
 constexpr float G = 6.67384e0;
 
-constexpr unsigned WINDOW_WIDTH = 1024;
-constexpr unsigned WINDOW_HEGIHT = 768;
+constexpr unsigned WINDOW_WIDTH = 1280;
+constexpr unsigned WINDOW_HEGIHT = 900;
 const std::string WINDOW_TITLE = "LD30";
 
 constexpr float UPDATE_STEP_S = 1.0f / 60.0f;
@@ -22,6 +22,10 @@ constexpr float VELOCITY_LINE_LENGTH = 100.0f;
 constexpr float PLANET_MASS = 1000.0f;
 constexpr float PLANET_SPEED = 200.0f;
 constexpr float ATTRACT_MASS = PLANET_MASS * 1000.0f;
+
+constexpr float POWERUP_RADIUS = 10.0f;
+constexpr float POWERUP_SPAWN_DELAY_S = 5.0f;
+constexpr float POWERUP_SPEED = 100.0f;
 
 constexpr float ASTEROID_SPAWN_DELAY_S = 0.5f;
 constexpr float ASTEROID_INITIAL_DISTANCE = 700.0f;

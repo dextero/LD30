@@ -2,6 +2,8 @@
 
 #include "config.h"
 
+#include <SFML/Graphics/Texture.hpp>
+
 inline sf::Color colorForMass(float mass)
 {
     float g = 255.0f;
@@ -16,11 +18,21 @@ inline sf::Color colorForMass(float mass)
 
 Sun::Sun(float mass,
          const sf::Vector2f& initialPos):
-    Asteroid(mass, initialPos, {}, {}, colorForMass(mass)),
+    Asteroid(mass, initialPos, {}, {}),
     isRedGiant(false),
     isBlackHole(false),
     redGiantExpandFactor(1.0f)
 {
+    static sf::Texture sunTexture;
+    if (sunTexture.getSize().x == 0) {
+        if (!sunTexture.loadFromFile("data/sun.png")) {
+            abort();
+        }
+    }
+
+    sprite.setTexture(sunTexture);
+    scaleToRadius();
+
     immovable = true;
 }
 
@@ -35,8 +47,7 @@ void Sun::update(float dt)
     radius += RED_GIANT_EXPAND_SPEED * dt * redGiantExpandFactor;
     redGiantExpandFactor *= 1.1f;
 
-    sprite.setRadius(radius);
-    sprite.setOrigin(radius, radius);
+    scaleToRadius();
 }
 
 void Sun::setMass(float newMass)
@@ -46,13 +57,13 @@ void Sun::setMass(float newMass)
     }
 
     Asteroid::setMass(newMass);
-    sprite.setFillColor(colorForMass(newMass));
+    sprite.setColor(colorForMass(newMass));
 }
 
 void Sun::turnIntoRedGiant()
 {
     isRedGiant = true;
-    sprite.setFillColor(sf::Color::Red);
+    sprite.setColor(sf::Color::Red);
 }
 
 void Sun::turnIntoBlackHole()
@@ -60,8 +71,9 @@ void Sun::turnIntoBlackHole()
     isBlackHole = true;
     mass = 1000000.0f;
     radius = 0.0f;
-    sprite.setRadius(BLACK_HOLE_RADIUS);
-    sprite.setOrigin(BLACK_HOLE_RADIUS, BLACK_HOLE_RADIUS);
-    sprite.setFillColor(sf::Color::Black);
+
+    float scale = BLACK_HOLE_RADIUS / sprite.getTexture()->getSize().x;
+    sprite.setScale(scale, scale);
+    sprite.setColor(sf::Color::Black);
 }
 

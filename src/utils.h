@@ -17,6 +17,15 @@ inline float rand_float(float min,
     return std::uniform_real_distribution<float>(min, max)(random_gen);
 }
 
+inline int rand_int(int min,
+                    int max)
+{
+    static std::random_device random_device;
+    static std::mt19937 random_gen;
+
+    return std::uniform_int_distribution<int>(min, max)(random_gen);
+}
+
 inline sf::Vector2f rand_vector()
 {
     float angle = rand_float(0.0f, M_PI);

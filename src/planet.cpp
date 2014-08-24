@@ -3,14 +3,24 @@
 #include <cassert>
 
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Texture.hpp>
 
 #include "utils.h"
 
 Planet::Planet(float mass,
                const sf::Vector2f& initialPos):
-    Asteroid(mass, initialPos, {}, {}, sf::Color::Red),
+    Asteroid(mass, initialPos, {}, {}),
     speedLimit(100.0f)
 {
+    static sf::Texture planetTexture;
+    if (planetTexture.getSize().x == 0) {
+        if (!planetTexture.loadFromFile("data/planet.png")) {
+            abort();
+        }
+    }
+
+    sprite.setTexture(planetTexture);
+    sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize()) / 2.0f);
 }
 
 void Planet::update(float dt)

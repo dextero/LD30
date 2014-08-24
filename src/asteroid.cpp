@@ -1,40 +1,45 @@
 #include "asteroid.h"
 
 #include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Texture.hpp>
 
 #include "utils.h"
 
 Asteroid::Asteroid(float mass,
                    const sf::Vector2f& initialPos,
                    const sf::Vector2f& initialVelocity,
-                   const sf::Vector2f& initialAcceleration,
-                   const sf::Color& color):
+                   const sf::Vector2f& initialAcceleration):
     velocity(initialVelocity),
     velocityLimit(-1.0f),
     acceleration(initialAcceleration),
     mass(0.0f),
     radius(0.0f),
-    sprite(sf::CircleShape(radius)),
     immovable(false),
     markedForDelete(false)
 {
-    setMass(mass);
+    static sf::Texture asteroidTexture;
+    if (asteroidTexture.getSize().x == 0) {
+        if (!asteroidTexture.loadFromFile("data/asteroid.png")) {
+            abort();
+        }
+    }
 
+    sprite.setTexture(asteroidTexture);
     sprite.setPosition(initialPos);
-    sprite.setOrigin(radius, radius);
-    sprite.setFillColor(color);
+    sprite.setRotation(rand_float(0.0f, 2.0f * M_PI));
+
+    setMass(mass);
 }
 
 void Asteroid::setMass(float newMass)
 {
     mass = newMass;
-    radius = std::sqrt(mass / M_PI);
-    sprite.setRadius(radius);
-    sprite.setOrigin(radius, radius);
+    radius = 2.0f * std::sqrt(mass / M_PI);
+    scaleToRadius();
 }
 
 void Asteroid::draw(sf::RenderTarget& rt,
-                  sf::RenderStates states) const
+                    sf::RenderStates states) const
 {
     rt.draw(sprite, states);
 }
@@ -66,4 +71,11 @@ void Asteroid::attractTo(const sf::Vector2f& target,
     sf::Vector2f delta = target - sprite.getPosition();
     sf::Vector2f dir = normalized(delta);
     acceleration += dir * G * (mass * targetMass) / lengthSq(delta) / mass * dt;
+}
+
+void Asteroid::scaleToRadius()
+{
+    float scale = 2.0f * radius / sprite.getTexture()->getSize().x;
+    sprite.setScale(scale, scale);
+    sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize()) / 2.0f);
 }

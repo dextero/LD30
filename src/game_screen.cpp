@@ -151,7 +151,7 @@ void GameScreen::onKeyPressed(const sf::Event& evt)
         if (selectedAsteroid < 0) {
             selectedAsteroid = findClosestTo(crosshair.getPosition());
             if (selectedAsteroid >= 0) {
-                asteroids[selectedAsteroid].sprite.setFillColor(SELECTED_ASTEROID_COLOR);
+                asteroids[selectedAsteroid].sprite.setColor(SELECTED_ASTEROID_COLOR);
             }
         }
         break;
@@ -197,7 +197,7 @@ void GameScreen::onKeyReleased(const sf::Event& evt)
     case sf::Keyboard::S: setCrosshairMoveDir(0); break;
     case sf::Keyboard::Space:
         if (selectedAsteroid >= 0) {
-            asteroids[selectedAsteroid].sprite.setFillColor(ASTEROID_COLOR);
+            asteroids[selectedAsteroid].sprite.setColor(sf::Color::White);
         }
         selectedAsteroid = -1;
         break;
@@ -349,8 +349,32 @@ void GameScreen::spawnAsteroids(float dt)
 
         float mass = rand_float(MIN_ASTEROID_MASS, MAX_ASTEROID_MASS);
 
-        asteroids.push_back({ mass, initialPos, initialVelocity, {},
-                              ASTEROID_COLOR });
+        asteroids.push_back({ mass, initialPos, initialVelocity, {} });
+    }
+}
+
+void GameScreen::spawnPowerups(float dt)
+{
+    static float timeAccumulator = 0.0f;
+
+    timeAccumulator += dt;
+
+    while (timeAccumulator > POWERUP_SPAWN_DELAY_S) {
+        timeAccumulator -= POWERUP_SPAWN_DELAY_S;
+
+        float initialAngle = rand_float(0, 2 * M_PI);
+        float initialDistance = ASTEROID_INITIAL_DISTANCE;
+        sf::Vector2f initialPos =
+                sf::Vector2f(std::cos(initialAngle) * initialDistance,
+                             std::sin(initialAngle) * initialDistance);
+
+        sf::Vector2f initialVelocity =
+                rotate(normalized(-initialPos),
+                       rand_float(-ASTEROID_INITIAL_ANGLE_VARIANCE,
+                                  ASTEROID_INITIAL_ANGLE_VARIANCE))
+                * POWERUP_SPEED;
+
+        powerups.push_back(Powerup::createRandom(initialPos, initialVelocity));
     }
 }
 

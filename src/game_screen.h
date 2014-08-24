@@ -11,6 +11,7 @@
 #include "explosion.h"
 #include "screen.h"
 #include "popup_messages.h"
+#include "powerup.h"
 
 class GameScreen:
     public Screen
@@ -33,6 +34,7 @@ private:
     Planet planet;
     std::vector<Asteroid> asteroids;
     std::vector<Explosion> explosions;
+    std::vector<Powerup> powerups;
     ssize_t selectedAsteroid;
 
     float crosshairAngle;
@@ -65,6 +67,7 @@ private:
     void checkRopeCollisions();
 
     void spawnAsteroids(float dt);
+    void spawnPowerups(float dt);
     void removeOutOfBounds();
 
     void doUpdateStep(float dt);
