@@ -5,6 +5,8 @@
 
 #include "screen.h"
 
+#include <SFML/Graphics/Sprite.hpp>
+
 class Game;
 
 class GameOverScreen:
@@ -32,6 +34,10 @@ private:
     const ssize_t points;
     std::vector<HiscoreEntry> hiscore;
     std::string currName;
+
+    sf::Sprite planetSprite;
+    sf::Sprite sunSprite;
+    sf::Sprite asteroidSprite;
 
     void saveScores();
 };

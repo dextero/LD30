@@ -5,6 +5,8 @@
 
 #include "utils.h"
 
+sf::Texture asteroidTexture;
+
 Asteroid::Asteroid(float mass,
                    const sf::Vector2f& initialPos,
                    const sf::Vector2f& initialVelocity,
@@ -17,7 +19,6 @@ Asteroid::Asteroid(float mass,
     immovable(false),
     markedForDelete(false)
 {
-    static sf::Texture asteroidTexture;
     if (asteroidTexture.getSize().x == 0) {
         if (!asteroidTexture.loadFromFile("data/asteroid.png")) {
             abort();

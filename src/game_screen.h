@@ -47,6 +47,7 @@ private:
 
     PopupMessages messages;
     float gameOverDelay;
+    float followTimer;
 
     ssize_t findClosestTo(const sf::Vector2f& pos);
     void attractSelected();

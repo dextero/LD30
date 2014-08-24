@@ -16,7 +16,8 @@ GameScreen::GameScreen(Game& game):
     crosshairAngle(0.0f),
     crosshairMoveDir(0.0f),
     points(0),
-    gameOverDelay(-1.0f)
+    gameOverDelay(-1.0f),
+    followTimer(-1.0f)
 {
     if (!crosshairTexture.loadFromFile("data/crosshair.png")) {
         printf("cannot load data/crosshair.png\n");
@@ -69,7 +70,7 @@ void GameScreen::update(float dt)
 
 void GameScreen::draw() const
 {
-    wnd->clear(sf::Color(0, 0, 50));
+    wnd->clear(BACKGROUND_COLOR);
     wnd->setView(sf::View(moveRect(viewRect, shakeOffset)));
 
     if (selectedAsteroid >= 0) {
@@ -252,6 +253,8 @@ void GameScreen::shakeScreen(float factor)
 void GameScreen::gameOver()
 {
     gameOverDelay = GAME_OVER_DELAY;
+    crosshair.setScale(0.0f, 0.0f);
+    messages.clear();
 
     explosions.clear();
     explosions.push_back(Explosion({}, 200, 35.0f));
@@ -339,6 +342,10 @@ void GameScreen::applyPowerup(Powerup& powerup)
         sun.turnIntoBlackHole(BLACK_HOLE_TIMEOUT);
         game.audio.addSound(Audio::Type::Powerup);
         break;
+    case Powerup::Type::Follow:
+        followTimer = FOLLOW_TIMEOUT;
+        game.audio.addSound(Audio::Type::Powerup);
+        break;
     case Powerup::Type::_Count: break;
     default:
         abort();
@@ -357,6 +364,10 @@ void GameScreen::updatePowerups(float dt)
             //printf("sun pos = %f, %f, bh mass = %f, dt = %f\n", sun.getPosition().x, sun.getPosition().y, BLACK_HOLE_MASS, dt);
             a.attractTo(sun.getPosition(), BLACK_HOLE_MASS, dt);
         }
+    }
+
+    if (followTimer >= 0.0f) {
+        followTimer -= dt;
     }
 }
 
@@ -473,9 +484,17 @@ void GameScreen::doUpdateStep(float dt)
         sun.turnIntoRedGiant();
     }
 
-    for (Asteroid* p: allObjects) {
-        p->update(dt);
+    if (followTimer <= 0.0f) {
+        for (Asteroid* p: allObjects) {
+            p->update(dt);
+        }
+    } else {
+        for (Asteroid& a: asteroids) {
+            sf::Vector2f dir = normalized(planet.getPosition() - a.getPosition());
+            a.sprite.move(dir * (FOLLOW_SPEED + rand_float(-FOLLOW_SPEED_VARIANCE, FOLLOW_SPEED_VARIANCE)) * dt);
+        }
     }
+
     for (Explosion& e: explosions) {
         e.update(dt);
     }

@@ -42,7 +42,7 @@ void MenuScreen::update(float /*dt*/)
 
 void MenuScreen::draw() const
 {
-    wnd->clear(sf::Color::Black);
+    wnd->clear(BACKGROUND_COLOR);
     wnd->setView(sf::View(viewRect));
     wnd->draw(tutorial);
     wnd->display();

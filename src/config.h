@@ -36,7 +36,8 @@ constexpr float MAX_ASTEROID_MASS = 70.0f;
 constexpr float MIN_ASTEROID_INITIAL_VELOCITY = 50.0f;
 constexpr float MAX_ASTEROID_INITIAL_VELOCITY = 100.0f;
 
-const sf::Color ASTEROID_COLOR = sf::Color(150.0f, 150.0f, 150.0f);
+const sf::Color BACKGROUND_COLOR = sf::Color(0, 0, 50);
+const sf::Color ASTEROID_COLOR = sf::Color(150, 150, 150);
 const sf::Color SELECTED_ASTEROID_COLOR = sf::Color(100, 200, 100);
 
 constexpr float MAX_EXPLOSION_START_TIME = 1.0f;
@@ -54,4 +55,8 @@ constexpr float BLACK_HOLE_RADIUS = 100.0f;
 constexpr float BLACK_HOLE_TIMEOUT = 5.0f;
 constexpr float BLACK_HOLE_TRANSITION_TIME = 1.0f;
 constexpr float RED_GIANT_EXPAND_SPEED = 100.0f;
+
+constexpr float FOLLOW_TIMEOUT = 5.0f;
+constexpr float FOLLOW_SPEED = 50.0f;
+constexpr float FOLLOW_SPEED_VARIANCE = 10.0f;
 

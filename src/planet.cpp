@@ -7,12 +7,13 @@
 
 #include "utils.h"
 
+sf::Texture planetTexture;
+
 Planet::Planet(float mass,
                const sf::Vector2f& initialPos):
     Asteroid(mass, initialPos, {}, {}),
     speedLimit(100.0f)
 {
-    static sf::Texture planetTexture;
     if (planetTexture.getSize().x == 0) {
         if (!planetTexture.loadFromFile("data/planet.png")) {
             abort();

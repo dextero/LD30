@@ -6,10 +6,8 @@
 #include <SFML/Graphics/Texture.hpp>
 #include <SFML/Graphics/RenderTarget.hpp>
 
-namespace {
 sf::Texture sunTexture;
 sf::Texture bhTexture;
-}
 
 inline sf::Color colorForMass(float mass)
 {

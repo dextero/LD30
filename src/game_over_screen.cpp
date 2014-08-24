@@ -6,10 +6,17 @@
 
 #include "game.h"
 
+extern sf::Texture planetTexture;
+extern sf::Texture sunTexture;
+extern sf::Texture asteroidTexture;
+
 GameOverScreen::GameOverScreen(Game& game,
                                ssize_t points):
     Screen(game),
-    points(points)
+    points(points),
+    planetSprite(planetTexture),
+    sunSprite(sunTexture),
+    asteroidSprite(asteroidTexture)
 {
     std::ifstream hiscoreFile("scores");
     if (!hiscoreFile.is_open()) {
@@ -23,6 +30,20 @@ GameOverScreen::GameOverScreen(Game& game,
             hiscore.push_back(entry);
         }
     }
+
+    planetSprite.setOrigin(sf::Vector2f(planetTexture.getSize()) / 2.0f);
+    planetSprite.setScale(2.0f, 2.0f);
+    planetSprite.setPosition(400.0f, 300.0f);
+
+    sunSprite.setOrigin(sf::Vector2f(sunTexture.getSize()) / 2.0f);
+    sunSprite.setScale(0.2f, 0.2f);
+    sunSprite.setColor(sf::Color::Yellow);
+    sunSprite.setPosition(-500.0f, -300.0f);
+
+    asteroidSprite.setOrigin(sf::Vector2f(asteroidTexture.getSize()) / 2.0f);
+    asteroidSprite.setScale(0.7f, 0.7f);
+    asteroidSprite.setRotation(42.0f);
+    asteroidSprite.setPosition(-300.0f, 200.0f);
 }
 
 void GameOverScreen::saveScores()
@@ -90,7 +111,7 @@ void GameOverScreen::draw() const
 
     std::vector<std::string> lines {
         "Game over!\n",
-        "Your planet collided with a star\n",
+        "Your planet collided with a star.\n",
         ((std::stringstream&)(std::stringstream() << "You scored: " << points << " points\n")).str(),
         "",
         "Type your name: " + currName,
@@ -106,7 +127,11 @@ void GameOverScreen::draw() const
 
     float yPos = -((float)lines.size() * (TEXT_HEIGHT + LINE_SPACING)) / 2.0f;
 
-    wnd->clear();
+    wnd->clear(BACKGROUND_COLOR);
+
+    wnd->draw(planetSprite);
+    wnd->draw(sunSprite);
+    wnd->draw(asteroidSprite);
 
     for (const std::string& line: lines) {
         sf::Text text(line, game.font, (unsigned)TEXT_HEIGHT);

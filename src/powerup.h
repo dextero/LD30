@@ -9,6 +9,7 @@ struct Powerup: public sf::Drawable
     enum class Type
     {
         BlackHole,
+        Follow,
 
         _Count,
     };
@@ -34,7 +35,7 @@ struct Powerup: public sf::Drawable
     {
         static std::vector<sf::Texture> textures;
         if (textures.size() == 0) {
-            for (const std::string& path: { "data/powerup1.png" }) {
+            for (const std::string& path: { "data/powerup1.png", "data/powerup2.png" }) {
                 textures.push_back({});
 
                 if (!textures.back().loadFromFile(path)) {

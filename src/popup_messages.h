@@ -30,6 +30,7 @@ public:
              float ttl_s = DEFAULT_POPUP_TTL_S);
 
     void update(float dt);
+    void clear() { msgs.clear(); }
 
 protected:
     virtual void draw(sf::RenderTarget& rt,
