@@ -27,9 +27,9 @@ private:
     float screenShakeFactor;
     sf::Vector2f shakeOffset;
 
-    sf::Vector2f planetMoveDir;
     Sun sun;
-    Planet planet;
+    sf::Vector2f planetMoveDir[2];
+    PlanetSystem planets;
     std::vector<Asteroid> asteroids;
     std::vector<Explosion> explosions;
 
@@ -51,6 +51,7 @@ private:
                          Asteroid* second,
                          const sf::Vector2f& collisionPos);
     void checkCollisions(const std::vector<Asteroid*> allObjects);
+    void checkRopeCollisions();
 
     void spawnAsteroids(float dt);
     void removeOutOfBounds();

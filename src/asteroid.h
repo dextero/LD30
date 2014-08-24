@@ -26,6 +26,8 @@ struct Asteroid: public sf::Drawable
     virtual void setMass(float newMass);
     virtual void update(float dt);
 
+    void rebound(const sf::Vector2f& normal);
+
 protected:
     virtual void draw(sf::RenderTarget& rt,
                       sf::RenderStates states) const;

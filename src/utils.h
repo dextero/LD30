@@ -23,9 +23,14 @@ inline sf::Vector2f rand_vector()
     return { std::cos(angle), std::sin(angle) };
 }
 
+constexpr inline float dot(const sf::Vector2f& a,
+                           const sf::Vector2f& b) {
+    return a.x * b.x + a.y * b.y;
+}
+
 constexpr inline float lengthSq(const sf::Vector2f& v)
 {
-    return v.x * v.x + v.y * v.y;
+    return dot(v, v);
 }
 
 constexpr inline float length(const sf::Vector2f& v)
@@ -60,5 +65,6 @@ inline sf::FloatRect moveRect(const sf::FloatRect& rect,
 inline sf::Vector2f rotate(const sf::Vector2f& v,
                            float angle)
 {
-    return sf::Transform().rotate(angle * M_PI / 180.0f).transformPoint(v);
+    return sf::Transform().rotate(angle * 180.0f / M_PI).transformPoint(v);
 }
+

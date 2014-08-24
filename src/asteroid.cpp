@@ -53,3 +53,9 @@ void Asteroid::update(float dt)
     sprite.move(velocity * dt);
 }
 
+void Asteroid::rebound(const sf::Vector2f& normal)
+{
+    velocity -= 2.0f * normal * dot(normal, velocity);
+    acceleration -= 2.0f * normal * dot(normal, acceleration);
+}
+
