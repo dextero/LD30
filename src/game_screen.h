@@ -21,6 +21,8 @@ public:
     virtual void update(float dt);
     virtual void draw() const;
 
+    ssize_t getPoints() const { return points; }
+
 private:
     float screenShakeFactor;
     sf::Vector2f shakeOffset;
@@ -31,10 +33,10 @@ private:
     std::vector<Asteroid> asteroids;
     std::vector<Explosion> explosions;
 
-    float accelerationLimit;
     ssize_t points;
 
     PopupMessages messages;
+    float gameOverDelay;
 
     void onKeyPressed(const sf::Event& evt);
     void onKeyReleased(const sf::Event& evt);

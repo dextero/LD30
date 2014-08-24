@@ -3,7 +3,10 @@
 #include <random>
 #include <cmath>
 
-constexpr float G = 6.67384e+1;
+#include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/Transform.hpp>
+
+#include "config.h"
 
 inline float rand_float(float min,
                         float max)
@@ -54,3 +57,8 @@ inline sf::FloatRect moveRect(const sf::FloatRect& rect,
                          rect.width, rect.height);
 }
 
+inline sf::Vector2f rotate(const sf::Vector2f& v,
+                           float angle)
+{
+    return sf::Transform().rotate(angle * M_PI / 180.0f).transformPoint(v);
+}

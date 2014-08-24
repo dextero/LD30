@@ -16,5 +16,8 @@ struct Sun: public Asteroid
 
     void turnIntoRedGiant();
     void turnIntoBlackHole();
+
+private:
+    float redGiantExpandFactor;
 };
 

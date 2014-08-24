@@ -18,8 +18,10 @@ Sun::Sun(float mass,
          const sf::Vector2f& initialPos):
     Asteroid(mass, initialPos, {}, {}, colorForMass(mass)),
     isRedGiant(false),
-    isBlackHole(false)
+    isBlackHole(false),
+    redGiantExpandFactor(1.0f)
 {
+    immovable = true;
 }
 
 void Sun::update(float dt)
@@ -30,7 +32,9 @@ void Sun::update(float dt)
         return;
     }
 
-    radius += RED_GIANT_EXPAND_SPEED * dt;
+    radius += RED_GIANT_EXPAND_SPEED * dt * redGiantExpandFactor;
+    redGiantExpandFactor *= 1.1f;
+
     sprite.setRadius(radius);
     sprite.setOrigin(radius, radius);
 }

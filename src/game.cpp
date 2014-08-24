@@ -1,5 +1,7 @@
 #include "game.h"
 
+#include "config.h"
+
 Game::Game()
 {
     if (!font.loadFromFile("DejaVuSans.ttf")) {
@@ -10,16 +12,28 @@ Game::Game()
 void Game::setState(State state)
 {
     switch (state) {
-    case State::Menu:    screen.reset(new MenuScreen(*this)); break;
-    case State::Running: screen.reset(new GameScreen(*this)); break;
-    case State::Over:    screen.reset(new GameOverScreen(*this)); break;
+    case State::Menu:
+        screen.reset(new MenuScreen(*this));
+        wnd->setTitle(WINDOW_TITLE + " / menu");
+        break;
+    case State::Running:
+        screen.reset(new GameScreen(*this));
+        wnd->setTitle(WINDOW_TITLE + " / game");
+        break;
+    case State::Over:
+        {
+            const GameScreen& prev = dynamic_cast<GameScreen&>(*screen);
+            screen.reset(new GameOverScreen(*this, prev.getPoints()));
+            wnd->setTitle(WINDOW_TITLE + " / game over");
+            break;
+        }
     }
 }
 
 void Game::run()
 {
-    sf::VideoMode videoMode(1024, 768);
-    wnd.reset(new sf::RenderWindow(videoMode, "LD30"));
+    sf::VideoMode videoMode(WINDOW_WIDTH, WINDOW_HEGIHT);
+    wnd.reset(new sf::RenderWindow(videoMode, WINDOW_TITLE));
     setState(State::Menu);
 
     sf::Clock clock;

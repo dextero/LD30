@@ -9,20 +9,18 @@
 
 GameScreen::GameScreen(Game& game):
     Screen(game),
-    points(0)
+    screenShakeFactor(0.0f),
+    sun(SUN_INITIAL_MASS, {}),
+    planet(PLANET_MASS, sf::Vector2f(-100.f, 0.f)),
+    points(0),
+    gameOverDelay(-1.0f)
 {
-    planet = Planet(PLANET_MASS, sf::Vector2f(-100.f, 0.f));
-
-    sun = Sun(SUN_INITIAL_MASS, {});
-    sun.immovable = true;
-
-    accelerationLimit = 100.0f;
 }
 
 void GameScreen::handleInput()
 {
     sf::Event evt;
-    
+
     while (wnd->pollEvent(evt)) {
         switch (evt.type) {
         case sf::Event::KeyPressed: onKeyPressed(evt); break;
@@ -43,8 +41,16 @@ void GameScreen::update(float dt)
         timeAccumulator -= UPDATE_STEP_S;
         doUpdateStep(UPDATE_STEP_S);
 
-        planet.sprite.move(planetMoveDir);
-        sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * dt);
+        if (gameOverDelay > 0.0f) {
+            gameOverDelay -= UPDATE_STEP_S;
+            if (gameOverDelay <= 0.0f) {
+                game.setState(Game::State::Over);
+            }
+        } else {
+            planet.sprite.move(planetMoveDir);
+        }
+
+        sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * UPDATE_STEP_S);
 
         if (sun.mass <= SUN_RED_GIANT_THRESHOLD) {
             sun.turnIntoRedGiant();
@@ -52,9 +58,9 @@ void GameScreen::update(float dt)
             sun.turnIntoBlackHole();
         }
 
-        sun.update(dt);
-        messages.update(dt);
-        updateShake(dt);
+        sun.update(UPDATE_STEP_S);
+        messages.update(UPDATE_STEP_S);
+        updateShake(UPDATE_STEP_S);
     }
 }
 
@@ -64,11 +70,11 @@ void GameScreen::draw() const
     wnd->setView(sf::View(moveRect(viewRect, shakeOffset)));
 
     wnd->draw(planet);
-    wnd->draw(sun);
     for (const Asteroid& a: asteroids) {
         //printf("asteroid @ %f %f\n", a.sprite.getPosition().x, a.sprite.getPosition().y);
         wnd->draw(a);
     }
+    wnd->draw(sun);
 
     for (const Explosion& e: explosions) {
         wnd->draw(e);
@@ -148,9 +154,8 @@ void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
         }
 
         if (sun.isBlackHole) {
-            accelerationLimit = distance(a1->sprite.getPosition(), sun.sprite.getPosition()) / UPDATE_STEP_S;
+            a1->velocityLimit = distance(a1->sprite.getPosition(), sun.sprite.getPosition()) / dt;
         }
-        a1->acceleration = normalized(a1->acceleration) * clamp(length(a1->acceleration), 0.0f, accelerationLimit);
         //printf("acceleration = %f %f\n", a1->acceleration.x, a1->acceleration.y);
     }
 }
@@ -162,7 +167,7 @@ void GameScreen::shakeScreen(float factor)
 
 void GameScreen::gameOver()
 {
-    game.setState(Game::State::Over);
+    gameOverDelay = GAME_OVER_DELAY;
 }
 
 void GameScreen::handleCollision(Asteroid* first,
@@ -198,7 +203,7 @@ void GameScreen::handleCollision(Asteroid* first,
     }
 
     // FIXME: remove `second` in a 'prettier' way
-    second->sprite.setPosition(100000.0f, 100000.0f);
+    second->markedForDelete = true;
 
     if (!sun.isBlackHole) {
         explosions.push_back(Explosion(collisionPos));
@@ -209,15 +214,25 @@ void GameScreen::handleCollision(Asteroid* first,
 void GameScreen::checkCollisions(const std::vector<Asteroid*> allObjects)
 {
     for (size_t i = 0; i < allObjects.size(); ++i) {
+        Asteroid* a1 = allObjects[i];
+        if (a1->markedForDelete) {
+            continue;
+        }
+
         for (size_t j = i + 1; j < allObjects.size(); ++j) {
-            Asteroid* a1 = allObjects[i];
             Asteroid* a2 = allObjects[j];
+            if (a2->markedForDelete) {
+                continue;
+            }
 
             const sf::Vector2f& pos1 = a1->sprite.getPosition();
             const sf::Vector2f& pos2 = a2->sprite.getPosition();
+            sf::Vector2f delta = pos2 - pos1;
 
-            if (distance(pos1, pos2) < a1->radius + a2->radius) {
-                sf::Vector2f collisionPos = pos1 + normalized(pos2 - pos1) * a1->radius;
+            if (lengthSq(delta) < EPSILON) {
+                handleCollision(a1, a2, pos1);
+            } else if (distance(pos1, pos2) < a1->radius + a2->radius) {
+                sf::Vector2f collisionPos = pos1 + normalized(delta) * a1->radius;
                 handleCollision(a1, a2, collisionPos);
             }
         }
@@ -234,17 +249,22 @@ void GameScreen::spawnAsteroids(float dt)
         timeAccumulator -= ASTEROID_SPAWN_DELAY_S;
 
         float initialAngle = rand_float(0, 2 * M_PI);
-        float initialDistance = 300.0f;
+        float initialDistance = ASTEROID_INITIAL_DISTANCE;
         sf::Vector2f initialPos =
                 sf::Vector2f(std::cos(initialAngle) * initialDistance,
                              std::sin(initialAngle) * initialDistance);
-        sf::Vector2f initialVelocity = rand_vector()
+
+        sf::Vector2f initialVelocity =
+                rotate(normalized(-initialPos),
+                       rand_float(-ASTEROID_INITIAL_ANGLE_VARIANCE,
+                                  ASTEROID_INITIAL_ANGLE_VARIANCE))
                 * rand_float(MIN_ASTEROID_INITIAL_VELOCITY,
                              MAX_ASTEROID_INITIAL_VELOCITY);
+
         float mass = rand_float(MIN_ASTEROID_MASS, MAX_ASTEROID_MASS);
 
         asteroids.push_back({ mass, initialPos, initialVelocity, {},
-                              sf::Color::Blue });
+                              sf::Color(150.0f, 150.0f, 150.0f) });
     }
 }
 
@@ -253,9 +273,11 @@ void GameScreen::removeOutOfBounds()
     //printf("viewRect is %f %f - %f %f\n", viewRect.left, viewRect.top, viewRect.width, viewRect.height);
 
     for (size_t i = 0; i < asteroids.size();) {
-        const sf::Vector2f& pos = asteroids[i].sprite.getPosition() / 2.0f;
+        bool markedForDelete = asteroids[i].markedForDelete;
+        const sf::Vector2f& pos = asteroids[i].sprite.getPosition();
 
-        if (!viewRect.contains(pos)) {
+        if (markedForDelete
+                || lengthSq(pos) > ASTEROID_MAX_DISTANCE * ASTEROID_MAX_DISTANCE) {
             if (i != asteroids.size() - 1) {
                 asteroids[i] = std::move(asteroids.back());
             }
@@ -285,6 +307,8 @@ void GameScreen::doUpdateStep(float dt)
 
     removeOutOfBounds();
     spawnAsteroids(dt);
+
+    printf("planet @ %f, %f\n", planet.sprite.getPosition().x, planet.sprite.getPosition().y);
 }
 
 void GameScreen::updateShake(float dt)
@@ -305,6 +329,10 @@ void GameScreen::updateShake(float dt)
 void GameScreen::addPoints(ssize_t delta,
                            const sf::Vector2f& source)
 {
+    if (sun.isBlackHole) {
+        return;
+    }
+
     sf::Color color = sf::Color::Green;
     if (delta < 0) {
         color = sf::Color::Red;

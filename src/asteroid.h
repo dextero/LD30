@@ -8,11 +8,13 @@
 struct Asteroid: public sf::Drawable
 {
     sf::Vector2f velocity;
+    float velocityLimit;
     sf::Vector2f acceleration;
     float mass;
     float radius;
     sf::CircleShape sprite;
     bool immovable;
+    bool markedForDelete;
 
     Asteroid() {}
     Asteroid(float mass,

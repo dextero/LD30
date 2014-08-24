@@ -9,5 +9,8 @@ struct Planet: public Asteroid
            const sf::Vector2f& initialPos);
 
     virtual void update(float dt);
+
+private:
+    float speedLimit;
 };
 
