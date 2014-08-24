@@ -239,7 +239,7 @@ void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
         if (a1 == &planet) {
             a1->acceleration = normalized(a1->acceleration) * std::sqrt(length(a1->acceleration));
             if (sun.isBlackHole) {
-                a1->acceleration *= 100.0f;
+                a1->acceleration *= 75.0f;
             }
         }
 
@@ -332,7 +332,7 @@ void GameScreen::applyPowerup(Powerup& powerup)
 {
     switch (powerup.type) {
     case Powerup::Type::BlackHole:
-        sun.isBlackHole = true;
+        sun.turnIntoBlackHole();
         blackHoleTimeout = 3.0f;
         printf("black hole applied\n");
         break;

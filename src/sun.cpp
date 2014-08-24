@@ -5,6 +5,11 @@
 
 #include <SFML/Graphics/Texture.hpp>
 
+namespace {
+sf::Texture sunTexture;
+sf::Texture bhTexture;
+}
+
 inline sf::Color colorForMass(float mass)
 {
     float g = 255.0f * clamp((mass - SUN_RED_GIANT_THRESHOLD) / (SUN_INITIAL_MASS - SUN_RED_GIANT_THRESHOLD), 0.0f, 1.0f);
@@ -19,9 +24,13 @@ Sun::Sun(float mass,
     isBlackHole(false),
     redGiantExpandFactor(1.0f)
 {
-    static sf::Texture sunTexture;
     if (sunTexture.getSize().x == 0) {
         if (!sunTexture.loadFromFile("data/sun.png")) {
+            abort();
+        }
+    }
+    if (bhTexture.getSize().x == 0) {
+        if (!bhTexture.loadFromFile("data/bh.png")) {
             abort();
         }
     }
@@ -37,6 +46,7 @@ void Sun::update(float dt)
     Asteroid::update(dt);
 
     if (!isRedGiant) {
+        sprite.rotate(-180.0f * dt);
         return;
     }
 
@@ -65,5 +75,13 @@ void Sun::turnIntoRedGiant()
 {
     isRedGiant = true;
     sprite.setColor(sf::Color::Red);
+}
+
+void Sun::turnIntoBlackHole()
+{
+    isBlackHole = true;
+
+    sprite.setTexture(bhTexture);
+    sprite.setOrigin(sf::Vector2f(bhTexture.getSize()) / 2.0f);
 }
 

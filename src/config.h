@@ -24,7 +24,7 @@ constexpr float PLANET_SPEED = 200.0f;
 constexpr float ATTRACT_MASS = PLANET_MASS * 10000.0f;
 
 constexpr float POWERUP_RADIUS = 10.0f;
-constexpr float POWERUP_SPAWN_DELAY_S = 0.1f;
+constexpr float POWERUP_SPAWN_DELAY_S = 15.0f;
 constexpr float POWERUP_SPEED = 300.0f;
 
 constexpr float ASTEROID_SPAWN_DELAY_S = 0.5f;
