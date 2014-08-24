@@ -25,6 +25,9 @@ struct Powerup: public sf::Drawable
     {
         this->sprite.setPosition(pos);
         this->sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize()) / 2.0f);
+
+        float scale = radius / (float)sprite.getTexture()->getSize().x;
+        this->sprite.setScale(scale, scale);
     }
 
     static sf::Sprite spriteForType(Type type)

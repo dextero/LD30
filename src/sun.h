@@ -7,7 +7,6 @@
 struct Sun: public Asteroid
 {
     bool isRedGiant;
-    bool isBlackHole;
 
     Sun() {}
     Sun(float mass,
@@ -18,10 +17,20 @@ struct Sun: public Asteroid
     sf::Vector2f getPosition() const { return circle.getPosition(); }
 
     void turnIntoRedGiant();
-    void turnIntoBlackHole();
+    void turnIntoBlackHole(float timeout);
+
+    bool isBlackHole() { return blackHoleTimeout > 0.0f; }
+
+protected:
+    virtual void draw(sf::RenderTarget& rt,
+                      sf::RenderStates states) const;
 
 private:
+    sf::Sprite blackHoleSprite;
     sf::CircleShape circle;
     float redGiantExpandFactor;
+    float blackHoleTimeout;
+
+    void turnIntoRegularSun();
 };
 

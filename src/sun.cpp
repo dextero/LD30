@@ -4,6 +4,7 @@
 #include "utils.h"
 
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
 
 namespace {
 sf::Texture sunTexture;
@@ -21,8 +22,8 @@ Sun::Sun(float mass,
          const sf::Vector2f& initialPos):
     Asteroid(mass, initialPos, {}, {}),
     isRedGiant(false),
-    isBlackHole(false),
-    redGiantExpandFactor(1.0f)
+    redGiantExpandFactor(1.0f),
+    blackHoleTimeout(-1.0f)
 {
     if (sunTexture.getSize().x == 0) {
         if (!sunTexture.loadFromFile("data/sun.png")) {
@@ -37,6 +38,9 @@ Sun::Sun(float mass,
 
     sprite.setTexture(sunTexture);
     scaleToRadius();
+    blackHoleSprite.setTexture(bhTexture);
+    blackHoleSprite.setOrigin(sf::Vector2f(bhTexture.getSize()) / 2.0f);
+    blackHoleSprite.setScale(0.0f, 0.0f);
 
     immovable = true;
 }
@@ -45,15 +49,35 @@ void Sun::update(float dt)
 {
     Asteroid::update(dt);
 
-    if (!isRedGiant) {
-        sprite.rotate(-180.0f * dt);
-        return;
+    blackHoleSprite.rotate(-180.0f * dt);
+
+    if (blackHoleTimeout > 0.0f) {
+        blackHoleTimeout -= dt;
+
+        if (blackHoleTimeout <= 0.0f) {
+            turnIntoRegularSun();
+        } else {
+            float scale = 2.0f * radius / bhTexture.getSize().x;
+            float bhScale = scale * clamp(blackHoleTimeout, 0.0f, BLACK_HOLE_TRANSITION_TIME) / BLACK_HOLE_TRANSITION_TIME;
+            
+            blackHoleSprite.setScale(bhScale, bhScale);
+
+            if (blackHoleTimeout > BLACK_HOLE_TIMEOUT - BLACK_HOLE_TRANSITION_TIME) {
+                scale *= (blackHoleTimeout - (BLACK_HOLE_TIMEOUT - BLACK_HOLE_TRANSITION_TIME)) / BLACK_HOLE_TRANSITION_TIME;
+            } else {
+                scale -= bhScale;
+            }
+
+            sprite.setScale(scale, scale);
+        }
     }
 
-    radius += RED_GIANT_EXPAND_SPEED * dt * redGiantExpandFactor;
-    redGiantExpandFactor *= 1.1f;
+    if (isRedGiant) {
+        radius += RED_GIANT_EXPAND_SPEED * dt * redGiantExpandFactor;
+        redGiantExpandFactor *= 1.1f;
 
-    scaleToRadius();
+        scaleToRadius();
+    }
 }
 
 void Sun::setMass(float newMass)
@@ -62,8 +86,7 @@ void Sun::setMass(float newMass)
         return;
     }
 
-    if (isBlackHole) {
-        sprite.setColor(sf::Color::Black);
+    if (blackHoleTimeout > 0.0f) {
         Asteroid::setMass(mass < newMass ? newMass : mass);
     } else {
         sprite.setColor(colorForMass(newMass));
@@ -77,11 +100,23 @@ void Sun::turnIntoRedGiant()
     sprite.setColor(sf::Color::Red);
 }
 
-void Sun::turnIntoBlackHole()
+void Sun::turnIntoBlackHole(float timeout)
 {
-    isBlackHole = true;
+    blackHoleTimeout = timeout;
+}
 
-    sprite.setTexture(bhTexture);
-    sprite.setOrigin(sf::Vector2f(bhTexture.getSize()) / 2.0f);
+void Sun::turnIntoRegularSun()
+{
+    blackHoleTimeout = -1.0f;
+
+    scaleToRadius();
+    blackHoleSprite.setScale(0.0f, 0.0f);
+}
+
+void Sun::draw(sf::RenderTarget& rt,
+               sf::RenderStates states) const
+{
+    rt.draw(blackHoleSprite, states);
+    Asteroid::draw(rt, states);
 }
 

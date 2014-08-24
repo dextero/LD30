@@ -30,7 +30,6 @@ private:
     sf::Vector2f shakeOffset;
 
     Sun sun;
-    float blackHoleTimeout;
 
     sf::Vector2f planetMoveDir;
     Planet planet;

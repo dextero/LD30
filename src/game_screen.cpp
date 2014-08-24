@@ -11,7 +11,6 @@ GameScreen::GameScreen(Game& game):
     Screen(game),
     screenShakeFactor(0.0f),
     sun(SUN_INITIAL_MASS, {}),
-    blackHoleTimeout(0.0f),
     planet(PLANET_MASS, sf::Vector2f(-300.f, -100.f)),
     selectedAsteroid(-1),
     crosshairAngle(0.0f),
@@ -65,16 +64,6 @@ void GameScreen::update(float dt)
             offset *= CROSSHAIR_DISTANCE;
             crosshair.setPosition(planet.getPosition() + offset);
         }
-
-        sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * UPDATE_STEP_S);
-
-        if (sun.mass <= SUN_RED_GIANT_THRESHOLD) {
-            sun.turnIntoRedGiant();
-        }
-
-        sun.update(UPDATE_STEP_S);
-        messages.update(UPDATE_STEP_S);
-        updateShake(UPDATE_STEP_S);
     }
 }
 
@@ -238,12 +227,12 @@ void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
 
         if (a1 == &planet) {
             a1->acceleration = normalized(a1->acceleration) * std::sqrt(length(a1->acceleration));
-            if (sun.isBlackHole) {
+            if (sun.isBlackHole()) {
                 a1->acceleration *= 75.0f;
             }
         }
 
-        if (sun.isBlackHole) {
+        if (sun.isBlackHole()) {
             a1->velocityLimit = distance(a1->sprite.getPosition(), sun.sprite.getPosition()) / dt;
         }
     }
@@ -332,8 +321,7 @@ void GameScreen::applyPowerup(Powerup& powerup)
 {
     switch (powerup.type) {
     case Powerup::Type::BlackHole:
-        sun.turnIntoBlackHole();
-        blackHoleTimeout = 3.0f;
+        sun.turnIntoBlackHole(BLACK_HOLE_TIMEOUT);
         printf("black hole applied\n");
         break;
     case Powerup::Type::_Count: break;
@@ -349,16 +337,10 @@ void GameScreen::updatePowerups(float dt)
         //printf("powerup @ %f, %f\n", powerup.sprite.getPosition().x, powerup.sprite.getPosition().y);
     }
 
-    if (blackHoleTimeout > 0.0f) {
+    if (sun.isBlackHole()) {
         for (Asteroid& a: asteroids) {
             //printf("sun pos = %f, %f, bh mass = %f, dt = %f\n", sun.getPosition().x, sun.getPosition().y, BLACK_HOLE_MASS, dt);
             a.attractTo(sun.getPosition(), BLACK_HOLE_MASS, dt);
-        }
-
-        blackHoleTimeout -= dt;
-        if (blackHoleTimeout <= 0.0f) {
-            sun.isBlackHole = false;
-            printf("black hole wore out\n");
         }
     }
 }
@@ -471,6 +453,11 @@ void GameScreen::doUpdateStep(float dt)
     updateForces(allObjects, dt);
     updatePowerups(dt);
 
+    sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * dt);
+    if (sun.mass <= SUN_RED_GIANT_THRESHOLD) {
+        sun.turnIntoRedGiant();
+    }
+
     for (Asteroid* p: allObjects) {
         p->update(dt);
     }
@@ -481,6 +468,9 @@ void GameScreen::doUpdateStep(float dt)
     removeOutOfBounds();
     spawnAsteroids(dt);
     spawnPowerups(dt);
+
+    messages.update(dt);
+    updateShake(dt);
 
     //printf("planet @ %f, %f\n", planet.sprite.getPosition().x, planet.sprite.getPosition().y);
 }
