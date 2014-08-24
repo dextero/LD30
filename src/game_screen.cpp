@@ -246,12 +246,20 @@ void GameScreen::shakeScreen(float factor)
 void GameScreen::gameOver()
 {
     gameOverDelay = GAME_OVER_DELAY;
+
+    explosions.clear();
+    explosions.push_back(Explosion({}, 200, 35.0f));
+    game.audio.addSound(Audio::Type::Explosion);
 }
 
 void GameScreen::handleCollision(Asteroid* first,
                                  Asteroid* second,
                                  const sf::Vector2f& collisionPos)
 {
+    if (gameOverDelay > 0.0f) {
+        return;
+    }
+
     if (first->immovable && second->immovable) {
         printf("uh oh. TODO\n");
         abort();
@@ -264,6 +272,7 @@ void GameScreen::handleCollision(Asteroid* first,
 
     if (first == &sun && second == &planet) {
         gameOver();
+        return;
     } else if (first == &planet) {
         shakeScreen(std::exp(second->mass / 100.0f));
 

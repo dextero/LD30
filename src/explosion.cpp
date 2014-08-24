@@ -6,7 +6,8 @@
 #include <SFML/Graphics/RenderTarget.hpp>
 
 Explosion::Explosion(const sf::Vector2f& pos,
-                     size_t numCircles):
+                     size_t numCircles,
+                     float scale):
     pos(pos)
 {
     //circles.push_back({ 0.0f, 3.0f, 10.0f, { 0.0f, 0.0f }, sf::Color::Yellow });
@@ -19,7 +20,7 @@ Explosion::Explosion(const sf::Vector2f& pos,
                             rand_float(-MAX_EXPLOSION_OFFSET, MAX_EXPLOSION_OFFSET));
         sf::Color color(255, (sf::Uint8)rand_float(0.0, 255.0), 0);
 
-        circles.push_back({ tts, tth, maxRadius, offset, color });
+        circles.push_back({ tts, tth, maxRadius * scale, offset * scale, color });
     }
 }
 

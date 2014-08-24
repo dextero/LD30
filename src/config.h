@@ -40,7 +40,7 @@ const sf::Color ASTEROID_COLOR = sf::Color(150.0f, 150.0f, 150.0f);
 const sf::Color SELECTED_ASTEROID_COLOR = sf::Color(100, 200, 100);
 
 constexpr float MAX_EXPLOSION_START_TIME = 1.0f;
-constexpr float MAX_EXPLOSION_TIME = 3.0f;
+constexpr float MAX_EXPLOSION_TIME = 4.0f;
 constexpr float MIN_EXPLOSION_RADIUS = 10.0f;
 constexpr float MAX_EXPLOSION_RADIUS = 20.0f;
 constexpr float MAX_EXPLOSION_OFFSET = 10.0f;
