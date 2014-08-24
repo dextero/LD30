@@ -119,10 +119,15 @@ void GameScreen::setCrosshairMoveDir(int dir) {
         return;
     }
 
-    if (std::fmod(crosshairAngle, 2.0f * M_PI) > M_PI) {
-        crosshairMoveDir = -(float)dir;
-    } else {
+    float modAngle = std::fmod(crosshairAngle, 2.0f * M_PI);
+    if (modAngle < 0.0f) {
+        modAngle += 2.0f * M_PI;
+    }
+
+    if (modAngle > M_PI) {
         crosshairMoveDir = (float)dir;
+    } else {
+        crosshairMoveDir = -(float)dir;
     }
 }
 
