@@ -59,3 +59,11 @@ void Asteroid::rebound(const sf::Vector2f& normal)
     acceleration -= 2.0f * normal * dot(normal, acceleration);
 }
 
+void Asteroid::attractTo(const sf::Vector2f& target,
+                         float targetMass,
+                         float dt)
+{
+    sf::Vector2f delta = target - sprite.getPosition();
+    sf::Vector2f dir = normalized(delta);
+    acceleration += dir * G * (mass * targetMass) / lengthSq(delta) / mass * dt;
+}

@@ -7,7 +7,8 @@
 PopupMessages::PopupMessages():
     textSize(DEFAULT_POPUP_TEXT_SIZE)
 {
-    if (!font.loadFromFile("DejaVuSans.ttf")) {
+    if (!font.loadFromFile("data/DejaVuSans.ttf")) {
+        printf("cannot load data/DejaVuSans.ttf\n");
         abort();
     }
 }

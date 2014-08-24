@@ -2,8 +2,10 @@
 
 #include <string>
 
+#include <SFML/Graphics/Color.hpp>
+
 constexpr float EPSILON = 0.001f;
-constexpr float G = 6.67384e-1;
+constexpr float G = 6.67384e0;
 
 constexpr unsigned WINDOW_WIDTH = 1024;
 constexpr unsigned WINDOW_HEGIHT = 768;
@@ -11,9 +13,12 @@ const std::string WINDOW_TITLE = "LD30";
 
 constexpr float UPDATE_STEP_S = 1.0f / 60.0f;
 constexpr float GAME_OVER_DELAY = 3.0f;
+constexpr float CROSSHAIR_SPEED = 200.0f;
+constexpr float MAX_SELECT_DISTANCE = 50.0f;
 
 constexpr float PLANET_MASS = 1000.0f;
-constexpr float PLANET_SPEED = 10.0f;
+constexpr float PLANET_SPEED = 200.0f;
+constexpr float ATTRACT_MASS = PLANET_MASS * 1000.0f;
 
 constexpr float ASTEROID_SPAWN_DELAY_S = 0.5f;
 constexpr float ASTEROID_INITIAL_DISTANCE = 700.0f;
@@ -23,6 +28,9 @@ constexpr float MIN_ASTEROID_MASS = 10.0f;
 constexpr float MAX_ASTEROID_MASS = 50.0f;
 constexpr float MIN_ASTEROID_INITIAL_VELOCITY = 50.0f;
 constexpr float MAX_ASTEROID_INITIAL_VELOCITY = 100.0f;
+
+const sf::Color ASTEROID_COLOR = sf::Color(150.0f, 150.0f, 150.0f);
+const sf::Color SELECTED_ASTEROID_COLOR = sf::Color(100, 200, 100);
 
 constexpr float MAX_EXPLOSION_START_TIME = 1.0f;
 constexpr float MAX_EXPLOSION_TIME = 3.0f;

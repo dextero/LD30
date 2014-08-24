@@ -12,9 +12,17 @@ GameScreen::GameScreen(Game& game):
     screenShakeFactor(0.0f),
     sun(SUN_INITIAL_MASS, {}),
     planet(PLANET_MASS, sf::Vector2f(-300.f, -100.f)),
+    selected(nullptr),
     points(0),
     gameOverDelay(-1.0f)
 {
+    if (!crosshairTexture.loadFromFile("data/crosshair.png")) {
+        printf("cannot load data/crosshair.png\n");
+        abort();
+    }
+
+    crosshair.setTexture(crosshairTexture);
+    crosshair.setOrigin(sf::Vector2f(crosshairTexture.getSize()) / 2.0f);
 }
 
 void GameScreen::handleInput()
@@ -47,7 +55,12 @@ void GameScreen::update(float dt)
                 game.setState(Game::State::Over);
             }
         } else {
-            planet.sprite.move(planetMoveDir);
+            planet.sprite.move(planetMoveDir * UPDATE_STEP_S);
+            crosshair.move(crosshairMoveDir * UPDATE_STEP_S);
+
+            if (selected) {
+                selected->attractTo(planet.getPosition(), ATTRACT_MASS, UPDATE_STEP_S);
+            }
         }
 
         sun.setMass(sun.mass - SUN_VAPORIZE_SPEED * UPDATE_STEP_S);
@@ -87,6 +100,7 @@ void GameScreen::draw() const
     wnd->draw(pointsText);
 
     wnd->draw(messages);
+    wnd->draw(crosshair);
 
     wnd->display();
 }
@@ -101,39 +115,44 @@ void GameScreen::onKeyPressed(const sf::Event& evt)
     case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::A: crosshairMoveDir.x = clamp(crosshairMoveDir.x - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::D: crosshairMoveDir.x = clamp(crosshairMoveDir.x + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::W: crosshairMoveDir.y = clamp(crosshairMoveDir.y - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::S: crosshairMoveDir.y = clamp(crosshairMoveDir.y + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::Space:
+        if (!selected) {
+            selected = findClosestTo(crosshair.getPosition());
+            if (selected) {
+                selected->sprite.setFillColor(SELECTED_ASTEROID_COLOR);
+            }
+        }
+        break;
     default:
         break;
     }
 }
 
-void GameScreen::toggleAttach()
+Asteroid* GameScreen::findClosestTo(const sf::Vector2f& pos)
 {
-    if (planet.hasAttachedAsteroid()) {
-        asteroids.push_back(planet.detach());
-    } else {
-        if (asteroids.size() == 0) {
-            printf("uh oh\n");
-            return;
-        }
-
-        size_t closestIdx = 0;
-        float closestDistance = distance(planet.sprite.getPosition(), asteroids[0].sprite.getPosition());
-        for (size_t i = 1; i < asteroids.size(); ++i) {
-            float dist = distance(planet.sprite.getPosition(), asteroids[i].sprite.getPosition());
-            if (dist < closestDistance) {
-                closestIdx = i;
-                closestDistance = dist;
-            }
-        }
-
-        Asteroid toAttach = std::move(asteroids[closestIdx]);
-        if (closestIdx != asteroids.size() - 1) {
-            asteroids[closestIdx] = asteroids.back();
-        }
-        asteroids.pop_back();
-
-        planet.attach(std::move(toAttach));
+    if (asteroids.size() == 0) {
+        return nullptr;
     }
+
+    size_t closestIdx = 0;
+    float closestDistance = distance(pos, asteroids[0].sprite.getPosition());
+    for (size_t i = 1; i < asteroids.size(); ++i) {
+        float dist = distance(pos, asteroids[i].sprite.getPosition());
+        if (dist < closestDistance) {
+            closestIdx = i;
+            closestDistance = dist;
+        }
+    }
+
+    if (closestDistance > MAX_SELECT_DISTANCE) {
+        return nullptr;
+    }
+
+    return &asteroids[closestIdx];
 }
 
 void GameScreen::onKeyReleased(const sf::Event& evt)
@@ -146,7 +165,16 @@ void GameScreen::onKeyReleased(const sf::Event& evt)
     case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
     case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Space: toggleAttach(); break;
+    case sf::Keyboard::A: crosshairMoveDir.x = clamp(crosshairMoveDir.x + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::D: crosshairMoveDir.x = clamp(crosshairMoveDir.x - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::W: crosshairMoveDir.y = clamp(crosshairMoveDir.y + CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::S: crosshairMoveDir.y = clamp(crosshairMoveDir.y - CROSSHAIR_SPEED, -CROSSHAIR_SPEED, CROSSHAIR_SPEED); break;
+    case sf::Keyboard::Space:
+        if (selected) {
+            selected->sprite.setFillColor(ASTEROID_COLOR);
+        }
+        selected = nullptr;
+        break;
     default:
         break;
     }
@@ -167,19 +195,14 @@ void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
             continue;
         }
 
-        sf::Vector2f totalForce(0.0f, 0.0f);
-
         for (Asteroid* a2: allObjects) {
             if (a1 == a2) {
                 continue;
             }
 
-            sf::Vector2f delta = a2->sprite.getPosition() - a1->sprite.getPosition();
-            sf::Vector2f dir = normalized(delta);
-            totalForce += dir * G * (a1->mass * a2->mass) / lengthSq(delta);
+            a1->attractTo(a2->getPosition(), a2->mass, dt);
         }
 
-        a1->acceleration += totalForce * dt;
         if (a1 == &planet && !sun.isBlackHole) {
             a1->acceleration = normalized(a1->acceleration) * std::sqrt(length(a1->acceleration));
         }
@@ -296,7 +319,7 @@ void GameScreen::spawnAsteroids(float dt)
         float mass = rand_float(MIN_ASTEROID_MASS, MAX_ASTEROID_MASS);
 
         asteroids.push_back({ mass, initialPos, initialVelocity, {},
-                              sf::Color(150.0f, 150.0f, 150.0f) });
+                              ASTEROID_COLOR });
     }
 }
 

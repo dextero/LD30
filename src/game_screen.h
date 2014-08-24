@@ -4,6 +4,7 @@
 
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
+#include <SFML/Graphics/Sprite.hpp>
 
 #include "planet.h"
 #include "sun.h"
@@ -32,13 +33,19 @@ private:
     Planet planet;
     std::vector<Asteroid> asteroids;
     std::vector<Explosion> explosions;
+    Asteroid* selected;
+
+    sf::Vector2f crosshairMoveDir;
+    sf::Texture crosshairTexture;
+    sf::Sprite crosshair;
 
     ssize_t points;
 
     PopupMessages messages;
     float gameOverDelay;
 
-    void toggleAttach();
+    Asteroid* findClosestTo(const sf::Vector2f& pos);
+    void attractSelected();
 
     void onKeyPressed(const sf::Event& evt);
     void onKeyReleased(const sf::Event& evt);

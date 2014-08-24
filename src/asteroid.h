@@ -26,7 +26,12 @@ struct Asteroid: public sf::Drawable
     virtual void setMass(float newMass);
     virtual void update(float dt);
 
+    const sf::Vector2f& getPosition() const { return sprite.getPosition(); }
+
     void rebound(const sf::Vector2f& normal);
+    void attractTo(const sf::Vector2f& target,
+                   float targetMass,
+                   float dt);
 
 protected:
     virtual void draw(sf::RenderTarget& rt,

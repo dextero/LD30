@@ -4,7 +4,8 @@
 
 Game::Game()
 {
-    if (!font.loadFromFile("DejaVuSans.ttf")) {
+    if (!font.loadFromFile("data/DejaVuSans.ttf")) {
+        printf("cannot load data/DejaVuSans.ttf\n");
         abort();
     }
 }
@@ -41,9 +42,11 @@ void Game::run()
     while (wnd->isOpen()) {
         std::shared_ptr<Screen> currScreen = screen;
 
-        currScreen->handleInput();
-        currScreen->update(clock.restart().asSeconds());
-        currScreen->draw();
+        if (currScreen) {
+            currScreen->handleInput();
+            currScreen->update(clock.restart().asSeconds());
+            currScreen->draw();
+        }
     }
 }
 
