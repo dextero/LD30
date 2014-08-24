@@ -38,10 +38,7 @@ void PopupMessages::update(float dt)
 
         msg.ttl_s -= dt;
         if (msg.ttl_s <= 0.0f) {
-            if (i != msgs.size() - 1) {
-                msgs[i] = std::move(msgs.back());
-            }
-            msgs.pop_back();
+            swapAndPop(msgs, i);
         } else {
             sf::Color color = msg.text.getColor();
             color.a = 255.0f * clamp(msg.ttl_s, 0.0f, 1.0f);

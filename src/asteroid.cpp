@@ -46,13 +46,16 @@ void Asteroid::draw(sf::RenderTarget& rt,
 
 void Asteroid::update(float dt)
 {
+    //printf("velocity was %f, %f\n", velocity.x, velocity.y);
     velocity += acceleration * dt;
+    //printf("velocity is %f, %f\n", velocity.x, velocity.y);
     if (lengthSq(velocity) < EPSILON) {
         return;
     }
 
     if (velocityLimit >= 0.0f) {
-        velocity = normalized(velocity) * velocityLimit;
+        velocity = normalized(velocity) * std::min(velocityLimit, length(velocity));
+        //printf("velocity limited to %f\n", velocityLimit);
     }
 
     sprite.move(velocity * dt);
@@ -70,7 +73,9 @@ void Asteroid::attractTo(const sf::Vector2f& target,
 {
     sf::Vector2f delta = target - sprite.getPosition();
     sf::Vector2f dir = normalized(delta);
-    acceleration += dir * G * (mass * targetMass) / lengthSq(delta) / mass * dt;
+    //printf("acc was %f, %f\n", acceleration.x, acceleration.y);
+    acceleration += dir * G * targetMass / lengthSq(delta) * dt;
+    //printf("acc is %f, %f\n", acceleration.x, acceleration.y);
 }
 
 void Asteroid::scaleToRadius()

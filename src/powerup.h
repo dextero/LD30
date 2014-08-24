@@ -2,7 +2,9 @@
 
 #include "utils.h"
 
-struct Powerup
+#include <SFML/Graphics/Drawable.hpp>
+
+struct Powerup: public sf::Drawable
 {
     enum class Type
     {
@@ -10,6 +12,20 @@ struct Powerup
 
         _Count,
     };
+
+    Powerup(Type type,
+            const sf::Vector2f& pos,
+            const sf::Vector2f& velocity,
+            const sf::Sprite& sprite,
+            float radius):
+        type(type),
+        velocity(velocity),
+        sprite(sprite),
+        radius(radius)
+    {
+        this->sprite.setPosition(pos);
+        this->sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize()) / 2.0f);
+    }
 
     static sf::Sprite spriteForType(Type type)
     {
@@ -41,9 +57,15 @@ struct Powerup
     }
 
     Type type;
-    sf::Vector2f pos;
     sf::Vector2f velocity;
     sf::Sprite sprite;
     float radius;
+
+protected:
+    virtual void draw(sf::RenderTarget& rt,
+                      sf::RenderStates states) const
+    {
+        rt.draw(sprite, states);
+    }
 };
 

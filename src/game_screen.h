@@ -30,6 +30,8 @@ private:
     sf::Vector2f shakeOffset;
 
     Sun sun;
+    float blackHoleTimeout;
+
     sf::Vector2f planetMoveDir;
     Planet planet;
     std::vector<Asteroid> asteroids;
@@ -64,9 +66,11 @@ private:
                          Asteroid* second,
                          const sf::Vector2f& collisionPos);
     void checkCollisions(const std::vector<Asteroid*> allObjects);
-    void checkRopeCollisions();
+    void checkPowerupCollisions();
 
     void spawnAsteroids(float dt);
+    void applyPowerup(Powerup& powerup);
+    void updatePowerups(float dt);
     void spawnPowerups(float dt);
     void removeOutOfBounds();
 

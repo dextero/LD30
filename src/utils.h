@@ -1,6 +1,7 @@
 #pragma once
 
 #include <random>
+#include <cassert>
 #include <cmath>
 
 #include <SFML/System/Vector2.hpp>
@@ -75,5 +76,17 @@ inline sf::Vector2f rotate(const sf::Vector2f& v,
                            float angle)
 {
     return sf::Transform().rotate(angle * 180.0f / M_PI).transformPoint(v);
+}
+
+template<typename T>
+inline void swapAndPop(std::vector<T>& container,
+                       size_t idx)
+{
+    assert(idx < container.size());
+
+    if (idx != container.size() - 1) {
+        container[idx] = std::move(container.back());
+    }
+    container.pop_back();
 }
 

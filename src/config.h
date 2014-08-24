@@ -21,11 +21,11 @@ constexpr float VELOCITY_LINE_LENGTH = 100.0f;
 
 constexpr float PLANET_MASS = 1000.0f;
 constexpr float PLANET_SPEED = 200.0f;
-constexpr float ATTRACT_MASS = PLANET_MASS * 1000.0f;
+constexpr float ATTRACT_MASS = PLANET_MASS * 10000.0f;
 
 constexpr float POWERUP_RADIUS = 10.0f;
-constexpr float POWERUP_SPAWN_DELAY_S = 5.0f;
-constexpr float POWERUP_SPEED = 100.0f;
+constexpr float POWERUP_SPAWN_DELAY_S = 0.1f;
+constexpr float POWERUP_SPEED = 300.0f;
 
 constexpr float ASTEROID_SPAWN_DELAY_S = 0.5f;
 constexpr float ASTEROID_INITIAL_DISTANCE = 700.0f;
@@ -49,7 +49,7 @@ constexpr size_t EXPLOSION_CIRCLES = 20;
 constexpr float SUN_INITIAL_MASS = 2500.0f;
 constexpr float SUN_VAPORIZE_SPEED = 50.0f;
 constexpr float SUN_RED_GIANT_THRESHOLD = 100.0f;
-constexpr float SUN_BLACK_HOLE_THRESHOLD = 10000.0f;
+constexpr float BLACK_HOLE_MASS = 1.0e+8f;
 constexpr float BLACK_HOLE_RADIUS = 100.0f;
 constexpr float RED_GIANT_EXPAND_SPEED = 100.0f;
 

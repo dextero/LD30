@@ -15,6 +15,7 @@ struct Sun: public Asteroid
 
     virtual void update(float dt);
     virtual void setMass(float newMass);
+    sf::Vector2f getPosition() const { return circle.getPosition(); }
 
     void turnIntoRedGiant();
     void turnIntoBlackHole();
