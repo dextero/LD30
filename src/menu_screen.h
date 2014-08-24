@@ -2,6 +2,9 @@
 
 #include "screen.h"
 
+#include <SFML/Graphics/Texture.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+
 class Game;
 
 class MenuScreen:
@@ -13,5 +16,9 @@ public:
     virtual void handleInput();
     virtual void update(float dt);
     virtual void draw() const;
+
+private:
+    sf::Texture tutorialTex;
+    sf::Sprite tutorial;
 };
 

@@ -148,6 +148,7 @@ void GameScreen::onKeyPressed(const sf::Event& evt)
             selectedAsteroid = findClosestTo(crosshair.getPosition());
             if (selectedAsteroid >= 0) {
                 asteroids[selectedAsteroid].sprite.setColor(SELECTED_ASTEROID_COLOR);
+                game.audio.addSound(Audio::Type::Attach);
             }
         }
         break;
@@ -336,7 +337,7 @@ void GameScreen::applyPowerup(Powerup& powerup)
     switch (powerup.type) {
     case Powerup::Type::BlackHole:
         sun.turnIntoBlackHole(BLACK_HOLE_TIMEOUT);
-        printf("black hole applied\n");
+        game.audio.addSound(Audio::Type::Powerup);
         break;
     case Powerup::Type::_Count: break;
     default:
