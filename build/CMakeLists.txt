@@ -30,10 +30,9 @@ set(CMAKE_BUILD_TYPE Release)
 
 # external libraries
 set(CMAKE_MODULE_PATH "${SFML_ROOT}/cmake/Modules" ${CMAKE_MODULE_PATH})
-set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH} ${SFML_ROOT}/lib")
-find_library(SFML 2 REQUIRED system window graphics audio)
+find_package(SFML 2 REQUIRED COMPONENTS system window graphics audio)
 
-include_directories(${SFML_INCLUDE_DIRS})
+include_directories(${SFML_INCLUDE_DIR})
 set(LIBS ${LIBS} ${SFML_LIBRARIES})
 
 # project sources
@@ -46,5 +45,5 @@ set(GAME_SOURCES ${GAME_HEADERS}
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -std=c++11 -Wno-variadic-macros -Wno-pragmas -Wno-unknown-pragmas -DGLM_FORCE_RADIANS -DGLM_SWIZZLE")
 
 add_executable(game ${GAME_SOURCES})
-target_link_libraries(game sfml-window sfml-graphics sfml-system sfml-audio)
+target_link_libraries(game ${LIBS})
 
