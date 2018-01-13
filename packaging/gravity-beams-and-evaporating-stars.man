@@ -1,0 +1,19 @@
+.TH GRAVITY-BEAMS-AND-EVAPORATING-STARS 6 "2018-01-13" "" "Games Manual"
+.SH NAME
+gravity\-beams\-and\-evaporating\-stars \- a game about hurling asteroids into the sun
+.SH SYNOPSIS
+.SY gravity\-beams\-and\-evaporating\-stars
+.YS
+.SH DESCRIPTION
+In
+.B Gravity Beams and Evaporating Stars: The Game
+you take control of a lone planet whose star is dying.
+Use your gravity beams to hurl nearby asteroids into the sun,
+feeding it some extra matter. 
+While saving the star, be sure to avoid being hit by the asteroids yourself.
+.SH LICENCE
+This program is made available under the terms of the MIT licence.
+.SH AUTHOR
+Written in 2014 by
+.B dextero
+for Ludum Dare 30.
