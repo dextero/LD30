@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2018 suve <veg@svgames.pl> -->
+<component type="desktop">
+<id>gravity-beams-and-evaporating-stars.desktop</id>
+	<metadata_license>CC-BY-SA-3.0</metadata_license>
+	<project_license>MIT</project_license>
+	<name>Gravity Beams and Evaporating Stars: The Game</name>
+	<summary>A game about hurling asteroids into the sun</summary>
+	<summary xml:lang="pl">Gra o miotaniu asteroidami w słońce</summary>
+	<description>
+		<p>
+			A game where you take control of a lone planet whose star is dying.
+			Use your gravity beams to hurl nearby asteroids into the sun, feeding it some extra matter. 
+			While saving the star, be sure to avoid being hit by the asteroids yourself.
+		</p>
+		<p xml:lang="pl">
+			Gra, w której wcielasz się w rolę samotnej planety, której gwiazda umiera.
+			Użyj swoich mocy grawitacji, by miotać pobliskimi asteroidami w słońce, dostarczając mu materii.
+			Ratując gwiazdę, uważaj, by samemu nie zderzyć się z asteroidami.
+		</p>
+	</description>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://musztardasarepska.pl/compo/LD30/LD30-1.png</image>
+		</screenshot>
+		<screenshot>
+			<image>https://musztardasarepska.pl/compo/LD30/LD30-2.png</image>
+		</screenshot>
+		<screenshot>
+			<image>https://musztardasarepska.pl/compo/LD30/LD30-3.png</image>
+		</screenshot>
+	</screenshots>
+	<url type="homepage">https://github.com/dextero/LD30</url>
+	<update_contact>veg@svgames.pl</update_contact>
+</component>
