@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Gravity Beams And Evaporating Stars: The Game
+Comment=A game about hurling asteroids into the sun
+Exec=gravity-beams-and-evaporating-stars
+Icon=gravity-beams-and-evaporating-stars
+Terminal=false
+Categories=Game;
+StartupNotify=false
