@@ -220,7 +220,7 @@ void GameScreen::updateForces(const std::vector<Asteroid*> allObjects,
         }
 
         a1->acceleration = { 0.0f, 0.0f };
-        if (a1 == &asteroids[selectedAsteroid]) {
+        if (selectedAsteroid >= 0 && a1 == &asteroids[selectedAsteroid]) {
             a1->attractTo(planet.getPosition(), ATTRACT_MASS, UPDATE_STEP_S);
         }
 
