@@ -21,6 +21,7 @@ struct Asteroid: public sf::Drawable
              const sf::Vector2f& initialPos,
              const sf::Vector2f& initialVelocity = { 0.0f, 0.0f },
              const sf::Vector2f& initialAcceleration = { 0.0f, 0.0f });
+    virtual ~Asteroid() {}
 
     virtual void setMass(float newMass);
     virtual void update(float dt);

@@ -12,6 +12,7 @@ class MenuScreen:
 {
 public:
     MenuScreen(Game& game);
+    virtual ~MenuScreen() {}
 
     virtual void handleInput();
     virtual void update(float dt);

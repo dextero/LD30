@@ -11,6 +11,7 @@ struct Sun: public Asteroid
     Sun() {}
     Sun(float mass,
         const sf::Vector2f& initialPos);
+    virtual ~Sun() {}
 
     virtual void update(float dt);
     virtual void setMass(float newMass);

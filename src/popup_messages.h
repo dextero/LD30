@@ -23,6 +23,7 @@ public:
     };
 
     PopupMessages();
+    virtual ~PopupMessages() {}
     
     void add(const std::string& msg,
              const sf::Vector2f& pos,

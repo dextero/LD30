@@ -18,6 +18,7 @@ class GameScreen:
 {
 public:
     GameScreen(Game& game);
+    virtual ~GameScreen() {}
     
     virtual void handleInput();
     virtual void update(float dt);

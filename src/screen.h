@@ -10,6 +10,7 @@ class Screen
 {
 public:
     Screen(Game& game);
+    virtual ~Screen() {}
 
     virtual void handleInput() = 0;
     virtual void update(float dt) = 0;

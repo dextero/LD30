@@ -26,6 +26,7 @@ struct Explosion: public sf::Drawable
     Explosion(const sf::Vector2f& pos,
               size_t numCircles = EXPLOSION_CIRCLES,
               float scale = 1.0f);
+    virtual ~Explosion() {}
 
     void update(float dt);
 

@@ -15,6 +15,7 @@ class GameOverScreen:
 public:
     GameOverScreen(Game& game,
                    ssize_t points);
+    virtual ~GameOverScreen() {}
 
     virtual void handleInput();
     virtual void update(float dt);

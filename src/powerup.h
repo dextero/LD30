@@ -31,6 +31,8 @@ struct Powerup: public sf::Drawable
         this->sprite.setScale(scale, scale);
     }
 
+    virtual ~Powerup() {}
+
     static sf::Sprite spriteForType(Type type)
     {
         static std::vector<sf::Texture> textures;
