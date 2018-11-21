@@ -29,7 +29,7 @@ Asteroid::Asteroid(float mass,
     sprite.setPosition(initialPos);
     sprite.setRotation(rand_float(0.0f, 2.0f * M_PI));
 
-    setMass(mass);
+    Asteroid::setMass(mass);
 }
 
 void Asteroid::setMass(float newMass)

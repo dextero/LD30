@@ -39,8 +39,10 @@ void Audio::addSound(Type type)
     }
 
     assert(earliestSound);
-    *earliestSound = sf::Sound(soundBuffers[(size_t)type]);
-    earliestSound->play();
+    if (earliestSound) {
+        *earliestSound = sf::Sound(soundBuffers[(size_t)type]);
+        earliestSound->play();
+    }
 }
 
 void Audio::setMusic(const std::string& path)
