@@ -16,7 +16,7 @@ struct Asteroid: public sf::Drawable
     bool immovable;
     bool markedForDelete;
 
-    Asteroid() {}
+    Asteroid();
     Asteroid(float mass,
              const sf::Vector2f& initialPos,
              const sf::Vector2f& initialVelocity = { 0.0f, 0.0f },
@@ -26,7 +26,7 @@ struct Asteroid: public sf::Drawable
     virtual void setMass(float newMass);
     virtual void update(float dt);
 
-    const sf::Vector2f& getPosition() const { return sprite.getPosition(); }
+    sf::Vector2f getPosition() const { return sprite.getPosition(); }
 
     void rebound(const sf::Vector2f& normal);
     void attractTo(const sf::Vector2f& target,

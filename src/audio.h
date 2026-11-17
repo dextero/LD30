@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include <SFML/Audio/Sound.hpp>
@@ -23,6 +24,6 @@ public:
 
 private:
     std::vector<sf::SoundBuffer> soundBuffers;
-    std::vector<sf::Sound> sounds;
+    std::vector<std::optional<sf::Sound>> sounds;
     sf::Music music;
 };

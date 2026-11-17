@@ -8,7 +8,7 @@ struct Sun: public Asteroid
 {
     bool isRedGiant;
 
-    Sun() {}
+    Sun();
     Sun(float mass,
         const sf::Vector2f& initialPos);
     virtual ~Sun() {}

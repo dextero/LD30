@@ -24,17 +24,17 @@ void Audio::addSound(Type type)
     float earliestSecondsLeft = 10000.0f;
     sf::Sound* earliestSound = nullptr;
 
-    for (sf::Sound& snd: sounds) {
-        if (!snd.getBuffer()) {
-            snd = sf::Sound(soundBuffers[(size_t)type]);
-            snd.play();
+    for (std::optional<sf::Sound>& snd: sounds) {
+        if (!snd) {
+            snd.emplace(soundBuffers[(size_t)type]);
+            snd->play();
             return;
         }
 
-        float secondsLeft = snd.getBuffer()->getDuration().asSeconds() - snd.getPlayingOffset().asSeconds();
+        float secondsLeft = snd->getBuffer().getDuration().asSeconds() - snd->getPlayingOffset().asSeconds();
         if (secondsLeft < earliestSecondsLeft) {
             earliestSecondsLeft = secondsLeft;
-            earliestSound = &snd;
+            earliestSound = &*snd;
         }
     }
 
@@ -51,6 +51,6 @@ void Audio::setMusic(const std::string& path)
         abort();
     }
 
-    music.setLoop(true);
+    music.setLooping(true);
     music.play();
 }

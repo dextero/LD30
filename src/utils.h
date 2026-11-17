@@ -3,8 +3,11 @@
 #include <random>
 #include <cassert>
 #include <cmath>
+#include <vector>
 
+#include <SFML/System/Angle.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/Transform.hpp>
 
 #include "config.h"
@@ -68,14 +71,13 @@ inline T clamp(T value, T min, T max)
 inline sf::FloatRect moveRect(const sf::FloatRect& rect,
                               const sf::Vector2f& offset)
 {
-    return sf::FloatRect(rect.left + offset.x, rect.top + offset.y,
-                         rect.width, rect.height);
+    return sf::FloatRect(rect.position + offset, rect.size);
 }
 
 inline sf::Vector2f rotate(const sf::Vector2f& v,
                            float angle)
 {
-    return sf::Transform().rotate(angle * 180.0f / M_PI).transformPoint(v);
+    return sf::Transform().rotate(sf::radians(angle)).transformPoint(v);
 }
 
 template<typename T>

@@ -20,8 +20,8 @@ Planet::Planet(float mass,
         }
     }
 
-    sprite.setTexture(planetTexture);
-    sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize()) / 2.0f);
+    sprite.setTexture(planetTexture, true);
+    sprite.setOrigin(sf::Vector2f(sprite.getTexture().getSize()) / 2.0f);
 }
 
 void Planet::update(float dt)
@@ -80,7 +80,7 @@ void Planet::draw(sf::RenderTarget& rt,
             { attached->sprite.getPosition() }
         };
 
-        rt.draw(linePoints, 2, sf::Lines);
+        rt.draw(linePoints, 2, sf::PrimitiveType::Lines);
         rt.draw(*attached);
     }
 

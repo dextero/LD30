@@ -19,18 +19,18 @@ GameOverScreen::GameOverScreen(Game& game,
     asteroidSprite(asteroidTexture)
 {
     planetSprite.setOrigin(sf::Vector2f(planetTexture.getSize()) / 2.0f);
-    planetSprite.setScale(2.0f, 2.0f);
-    planetSprite.setPosition(400.0f, 300.0f);
+    planetSprite.setScale({ 2.0f, 2.0f });
+    planetSprite.setPosition({ 400.0f, 300.0f });
 
     sunSprite.setOrigin(sf::Vector2f(sunTexture.getSize()) / 2.0f);
-    sunSprite.setScale(0.2f, 0.2f);
+    sunSprite.setScale({ 0.2f, 0.2f });
     sunSprite.setColor(sf::Color::Yellow);
-    sunSprite.setPosition(-500.0f, -300.0f);
+    sunSprite.setPosition({ -500.0f, -300.0f });
 
     asteroidSprite.setOrigin(sf::Vector2f(asteroidTexture.getSize()) / 2.0f);
-    asteroidSprite.setScale(0.7f, 0.7f);
-    asteroidSprite.setRotation(42.0f);
-    asteroidSprite.setPosition(-300.0f, 200.0f);
+    asteroidSprite.setScale({ 0.7f, 0.7f });
+    asteroidSprite.setRotation(sf::degrees(42.0f));
+    asteroidSprite.setPosition({ -300.0f, 200.0f });
 
     std::ifstream hiscoreFile("scores");
     if (!hiscoreFile.is_open()) {
@@ -65,28 +65,22 @@ void GameOverScreen::saveScores()
 
 void GameOverScreen::handleInput()
 {
-    sf::Event evt;
-    
-    while (wnd->pollEvent(evt)) {
-        switch (evt.type) {
-        case sf::Event::TextEntered:
-            {
-                char c = (char)evt.text.unicode;
-                if (isgraph(c)) {
-                    currName += c;
-                }
+    while (const std::optional event = wnd->pollEvent()) {
+        if (const auto* textEntered = event->getIf<sf::Event::TextEntered>()) {
+            char c = (char)textEntered->unicode;
+            if (isgraph(c)) {
+                currName += c;
             }
-            break;
-        case sf::Event::KeyReleased:
-            switch (evt.key.code) {
-            case sf::Keyboard::Escape:
+        } else if (const auto* keyReleased = event->getIf<sf::Event::KeyReleased>()) {
+            switch (keyReleased->code) {
+            case sf::Keyboard::Key::Escape:
                 wnd->close();
                 break;
-            case sf::Keyboard::Space:
+            case sf::Keyboard::Key::Space:
                 saveScores();
                 game.setState(Game::State::Running);
                 break;
-            case sf::Keyboard::BackSpace:
+            case sf::Keyboard::Key::Backspace:
                 if (!currName.empty()) {
                     currName = currName.substr(0, currName.size() - 1);
                 }
@@ -94,8 +88,6 @@ void GameOverScreen::handleInput()
             default:
                 break;
             }
-        default:
-            break;
         }
     }
 }
@@ -134,12 +126,12 @@ void GameOverScreen::draw() const
     wnd->draw(asteroidSprite);
 
     for (const std::string& line: lines) {
-        sf::Text text(line, game.font, (unsigned)TEXT_HEIGHT);
+        sf::Text text(game.font, line, (unsigned)TEXT_HEIGHT);
         sf::FloatRect rect = text.getLocalBounds();
 
-        text.setOrigin(rect.left + rect.width / 2.0f,
-                       rect.top + rect.height / 2.0f);
-        text.setPosition(0.f, yPos);
+        text.setOrigin({ rect.position.x + rect.size.x / 2.0f,
+                         rect.position.y + rect.size.y / 2.0f });
+        text.setPosition({ 0.f, yPos });
         wnd->draw(text);
 
         yPos += TEXT_HEIGHT + LINE_SPACING;

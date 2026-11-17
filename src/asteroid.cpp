@@ -7,6 +7,20 @@
 
 sf::Texture asteroidTexture;
 
+static const sf::Texture& ensureAsteroidTexture()
+{
+    if (asteroidTexture.getSize().x == 0) {
+        if (!asteroidTexture.loadFromFile("data/asteroid.png")) {
+            abort();
+        }
+    }
+    return asteroidTexture;
+}
+
+Asteroid::Asteroid():
+    sprite(ensureAsteroidTexture())
+{}
+
 Asteroid::Asteroid(float mass,
                    const sf::Vector2f& initialPos,
                    const sf::Vector2f& initialVelocity,
@@ -16,18 +30,12 @@ Asteroid::Asteroid(float mass,
     acceleration(initialAcceleration),
     mass(0.0f),
     radius(0.0f),
+    sprite(ensureAsteroidTexture()),
     immovable(false),
     markedForDelete(false)
 {
-    if (asteroidTexture.getSize().x == 0) {
-        if (!asteroidTexture.loadFromFile("data/asteroid.png")) {
-            abort();
-        }
-    }
-
-    sprite.setTexture(asteroidTexture);
     sprite.setPosition(initialPos);
-    sprite.setRotation(rand_float(0.0f, 2.0f * M_PI));
+    sprite.setRotation(sf::radians(rand_float(0.0f, 2.0f * M_PI)));
 
     Asteroid::setMass(mass);
 }
@@ -81,7 +89,7 @@ void Asteroid::attractTo(const sf::Vector2f& target,
 
 void Asteroid::scaleToRadius()
 {
-    float scale = 2.0f * radius / sprite.getTexture()->getSize().x;
-    sprite.setScale(scale, scale);
-    sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize()) / 2.0f);
+    float scale = 2.0f * radius / sprite.getTexture().getSize().x;
+    sprite.setScale({ scale, scale });
+    sprite.setOrigin(sf::Vector2f(sprite.getTexture().getSize()) / 2.0f);
 }

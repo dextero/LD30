@@ -15,6 +15,7 @@ GameScreen::GameScreen(Game& game):
     selectedAsteroid(-1),
     crosshairAngle(0.0f),
     crosshairMoveDir(0.0f),
+    crosshair(crosshairTexture),
     points(0),
     gameOverDelay(-1.0f),
     followTimer(-1.0f)
@@ -24,22 +25,21 @@ GameScreen::GameScreen(Game& game):
         abort();
     }
 
-    crosshair.setTexture(crosshairTexture);
+    crosshair.setTexture(crosshairTexture, true);
     crosshair.setOrigin(sf::Vector2f(crosshairTexture.getSize()) / 2.0f);
 }
 
 void GameScreen::handleInput()
 {
-    sf::Event evt;
-
-    while (wnd->pollEvent(evt)) {
-        switch (evt.type) {
-        case sf::Event::KeyPressed: onKeyPressed(evt); break;
-        case sf::Event::KeyReleased: onKeyReleased(evt); break;
-        //case sf::Event::MouseMoved: onMouseMoved(evt); break;
-        default:
-            break;
+    while (const std::optional event = wnd->pollEvent()) {
+        if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+            onKeyPressed(*keyPressed);
+        } else if (const auto* keyReleased = event->getIf<sf::Event::KeyReleased>()) {
+            onKeyReleased(*keyReleased);
         }
+        //else if (const auto* mouseMoved = event->getIf<sf::Event::MouseMoved>()) {
+        //    onMouseMoved(*mouseMoved);
+        //}
     }
 }
 
@@ -77,11 +77,11 @@ void GameScreen::draw() const
         const Asteroid& selected = asteroids[selectedAsteroid];
 
         sf::Vertex lineVerts[] {
-            selected.getPosition(),
-            selected.getPosition() + normalized(selected.velocity) * VELOCITY_LINE_LENGTH
+            { selected.getPosition() },
+            { selected.getPosition() + normalized(selected.velocity) * VELOCITY_LINE_LENGTH }
         };
 
-        wnd->draw(lineVerts, 2, sf::Lines);
+        wnd->draw(lineVerts, 2, sf::PrimitiveType::Lines);
     }
 
     wnd->draw(planet);
@@ -100,8 +100,8 @@ void GameScreen::draw() const
 
     std::stringstream ss;
     ss << points;
-    sf::Text pointsText(ss.str(), game.font);
-    pointsText.setPosition(viewRect.left + 5, viewRect.top + 5);
+    sf::Text pointsText(game.font, ss.str());
+    pointsText.setPosition({ viewRect.position.x + 5, viewRect.position.y + 5 });
     wnd->draw(pointsText);
 
     wnd->draw(messages);
@@ -132,19 +132,19 @@ void GameScreen::setCrosshairMoveDir(int dir) {
     }
 }
 
-void GameScreen::onKeyPressed(const sf::Event& evt)
+void GameScreen::onKeyPressed(const sf::Event::KeyPressed& evt)
 {
-    switch (evt.key.code) {
-    case sf::Keyboard::Escape:
+    switch (evt.code) {
+    case sf::Keyboard::Key::Escape:
         wnd->close();
         break;
-    case sf::Keyboard::Left:  planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::A: setCrosshairMoveDir(-1); break;
-    case sf::Keyboard::D: setCrosshairMoveDir(1); break;
-    case sf::Keyboard::Space:
+    case sf::Keyboard::Key::Left:  planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::Right: planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::Up:    planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::Down:  planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::A: setCrosshairMoveDir(-1); break;
+    case sf::Keyboard::Key::D: setCrosshairMoveDir(1); break;
+    case sf::Keyboard::Key::Space:
         if (selectedAsteroid < 0) {
             selectedAsteroid = findClosestTo(crosshair.getPosition());
             if (selectedAsteroid >= 0) {
@@ -181,19 +181,19 @@ ssize_t GameScreen::findClosestTo(const sf::Vector2f& pos)
     return (ssize_t)closestIdx;
 }
 
-void GameScreen::onKeyReleased(const sf::Event& evt)
+void GameScreen::onKeyReleased(const sf::Event::KeyReleased& evt)
 {
-    switch (evt.key.code) {
-    case sf::Keyboard::Escape:
+    switch (evt.code) {
+    case sf::Keyboard::Key::Escape:
         wnd->close();
         break;
-    case sf::Keyboard::Left:  planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Right: planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Up:    planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::Down:  planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
-    case sf::Keyboard::A: 
-    case sf::Keyboard::D: setCrosshairMoveDir(0); break;
-    case sf::Keyboard::Space:
+    case sf::Keyboard::Key::Left:  planetMoveDir.x = clamp(planetMoveDir.x + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::Right: planetMoveDir.x = clamp(planetMoveDir.x - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::Up:    planetMoveDir.y = clamp(planetMoveDir.y + PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::Down:  planetMoveDir.y = clamp(planetMoveDir.y - PLANET_SPEED, -PLANET_SPEED, PLANET_SPEED); break;
+    case sf::Keyboard::Key::A: 
+    case sf::Keyboard::Key::D: setCrosshairMoveDir(0); break;
+    case sf::Keyboard::Key::Space:
         if (selectedAsteroid >= 0) {
             asteroids[selectedAsteroid].sprite.setColor(sf::Color::White);
         }
@@ -204,7 +204,7 @@ void GameScreen::onKeyReleased(const sf::Event& evt)
     }
 }
 
-void GameScreen::onMouseMoved(const sf::Event& /*evt*/)
+void GameScreen::onMouseMoved(const sf::Event::MouseMoved& /*evt*/)
 {
     //printf("onMouseMoved %d %d\n", evt.mouseMove.x, evt.mouseMove.y);
     //planet.sprite.setPosition((float)evt.mouseMove.x + viewRect.left,
@@ -253,7 +253,7 @@ void GameScreen::shakeScreen(float factor)
 void GameScreen::gameOver()
 {
     gameOverDelay = GAME_OVER_DELAY;
-    crosshair.setScale(0.0f, 0.0f);
+    crosshair.setScale({ 0.0f, 0.0f });
     messages.clear();
 
     explosions.clear();

@@ -4,7 +4,7 @@
 
 Game::Game()
 {
-    if (!font.loadFromFile("data/DejaVuSans.ttf")) {
+    if (!font.openFromFile("data/DejaVuSans.ttf")) {
         printf("cannot load data/DejaVuSans.ttf\n");
         abort();
     }
@@ -30,7 +30,7 @@ void Game::setState(State state)
 
 void Game::run()
 {
-    sf::VideoMode videoMode(WINDOW_WIDTH, WINDOW_HEGIHT);
+    sf::VideoMode videoMode({ WINDOW_WIDTH, WINDOW_HEGIHT });
     wnd.reset(new sf::RenderWindow(videoMode, WINDOW_TITLE));
     setState(State::Menu);
 

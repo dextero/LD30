@@ -1,5 +1,7 @@
 #include "explosion.h"
 
+#include <cstdint>
+
 #include "utils.h"
 
 #include <SFML/Graphics/CircleShape.hpp>
@@ -18,7 +20,7 @@ Explosion::Explosion(const sf::Vector2f& pos,
         float maxRadius = rand_float(MIN_EXPLOSION_RADIUS, MAX_EXPLOSION_RADIUS);
         sf::Vector2f offset(rand_float(-MAX_EXPLOSION_OFFSET, MAX_EXPLOSION_OFFSET),
                             rand_float(-MAX_EXPLOSION_OFFSET, MAX_EXPLOSION_OFFSET));
-        sf::Color color(255, (sf::Uint8)rand_float(0.0, 255.0), 0);
+        sf::Color color(255, (std::uint8_t)rand_float(0.0, 255.0), 0);
 
         circles.push_back({ tts, tth, maxRadius * scale, offset * scale, color });
     }
@@ -45,10 +47,10 @@ void Explosion::draw(sf::RenderTarget& rt,
 
         float progress = (MAX_EXPLOSION_TIME - c.timeToHide) / MAX_EXPLOSION_TIME;
         float radius = c.maxRadius * progress;
-        sf::Uint8 alpha = 255 - (sf::Uint8)(255.0f * progress * progress * progress * progress);
+        std::uint8_t alpha = 255 - (std::uint8_t)(255.0f * progress * progress * progress * progress);
 
         shape.setRadius(radius);
-        shape.setOrigin(c.offset.x + radius, c.offset.y + radius);
+        shape.setOrigin({ c.offset.x + radius, c.offset.y + radius });
         shape.setFillColor(sf::Color(c.color.r, c.color.g, c.color.b, alpha));
 
         rt.draw(shape, states);

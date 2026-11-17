@@ -3,6 +3,9 @@
 #include "utils.h"
 
 #include <SFML/Graphics/Drawable.hpp>
+#include <SFML/Graphics/RenderTarget.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
 
 struct Powerup: public sf::Drawable
 {
@@ -25,10 +28,10 @@ struct Powerup: public sf::Drawable
         radius(radius)
     {
         this->sprite.setPosition(pos);
-        this->sprite.setOrigin(sf::Vector2f(sprite.getTexture()->getSize()) / 2.0f);
+        this->sprite.setOrigin(sf::Vector2f(sprite.getTexture().getSize()) / 2.0f);
 
-        float scale = radius / (float)sprite.getTexture()->getSize().x;
-        this->sprite.setScale(scale, scale);
+        float scale = radius / (float)sprite.getTexture().getSize().x;
+        this->sprite.setScale({ scale, scale });
     }
 
     virtual ~Powerup() {}

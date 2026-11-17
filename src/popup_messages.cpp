@@ -7,7 +7,7 @@
 PopupMessages::PopupMessages():
     textSize(DEFAULT_POPUP_TEXT_SIZE)
 {
-    if (!font.loadFromFile("data/DejaVuSans.ttf")) {
+    if (!font.openFromFile("data/DejaVuSans.ttf")) {
         printf("cannot load data/DejaVuSans.ttf\n");
         abort();
     }
@@ -18,16 +18,16 @@ void PopupMessages::add(const std::string& msg,
                         const sf::Color& color,
                         float ttl_s)
 {
-    msgs.push_back({ sf::Text(msg, font), ttl_s });
+    msgs.push_back({ sf::Text(font, msg), ttl_s });
 
     sf::Text& text = msgs.back().text;
     sf::FloatRect boundingRect = text.getLocalBounds();
-    sf::Vector2f centerOffset(boundingRect.left + boundingRect.width / 2,
-                              boundingRect.top + boundingRect.height / 2);
+    sf::Vector2f centerOffset(boundingRect.position.x + boundingRect.size.x / 2,
+                              boundingRect.position.y + boundingRect.size.y / 2);
 
     text.setOrigin(centerOffset);
     text.setPosition(pos);
-    text.setColor(color);
+    text.setFillColor(color);
     text.setCharacterSize(textSize);
 }
 
@@ -40,10 +40,10 @@ void PopupMessages::update(float dt)
         if (msg.ttl_s <= 0.0f) {
             swapAndPop(msgs, i);
         } else {
-            sf::Color color = msg.text.getColor();
+            sf::Color color = msg.text.getFillColor();
             color.a = 255.0f * clamp(msg.ttl_s, 0.0f, 1.0f);
-            msg.text.setColor(color);
-            msg.text.move(0.0f, -POPUP_ASCEND_SPEED * dt);
+            msg.text.setFillColor(color);
+            msg.text.move({ 0.0f, -POPUP_ASCEND_SPEED * dt });
             ++i;
         }
     }
